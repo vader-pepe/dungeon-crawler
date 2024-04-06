@@ -9,15 +9,15 @@
     ],
     "fileStates": {
         "Tiles.tsx": {
-            "scaleInDock": 1,
+            "scaleInDock": 2,
             "scaleInEditor": 3
         },
         "dungeon-crawler.tmx": {
             "scale": 3,
-            "selectedLayer": 0,
+            "selectedLayer": 1,
             "viewCenter": {
-                "x": 338.33333333333326,
-                "y": 339.66666666666663
+                "x": 182.66666666666663,
+                "y": 234.66666666666669
             }
         }
     },
@@ -28,12 +28,13 @@
     "map.tileWidth": 16,
     "map.width": 50,
     "openFiles": [
-        "dungeon-crawler.tmx"
+        "dungeon-crawler.tmx",
+        "Tiles.tsx"
     ],
     "project": "dungeon-crawler.tiled-project",
     "recentFiles": [
-        "dungeon-crawler.tmx",
-        "Tiles.tsx"
+        "Tiles.tsx",
+        "dungeon-crawler.tmx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.spacing": 0,
