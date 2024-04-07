@@ -1,5 +1,3 @@
-use std::f32;
-
 use raylib::{ffi::Vector2, prelude::*};
 
 const SCREEN_WIDTH: i32 = 640;
@@ -15,7 +13,9 @@ fn main() {
         .load_texture(&thread, "./src/assets/img/Heroes/Rogue/Idle/Idle-Sheet.png")
         .unwrap();
 
-    let position = Vector2 { x: 0.0, y: 0.0 };
+    let mut player_position = Vector2 { x: 0.0, y: 0.0 };
+    let mut player_tile_x = 0;
+    let mut player_tile_y = 0;
     let frame_rec = Rectangle {
         x: 0.0,
         y: 0.0,
@@ -39,9 +39,21 @@ fn main() {
                 current_frame = 0;
             }
         }
+        if rl.is_key_down(KeyboardKey::KEY_RIGHT) {
+            player_position.x += 5 as f32;
+        }
+        if rl.is_key_down(KeyboardKey::KEY_LEFT) {
+            player_position.x -= 5 as f32;
+        }
+        if rl.is_key_down(KeyboardKey::KEY_DOWN) {
+            player_position.y += 5 as f32;
+        }
+        if rl.is_key_down(KeyboardKey::KEY_UP) {
+            player_position.y -= 5 as f32;
+        }
         let mut d = rl.begin_drawing(&thread);
 
         d.clear_background(Color::WHITE);
-        d.draw_texture_rec(hero_texture, frame_rec, position, Color::WHITE);
+        d.draw_texture_rec(hero_texture, frame_rec, player_position, Color::WHITE);
     }
 }
