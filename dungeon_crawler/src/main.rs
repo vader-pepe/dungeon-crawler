@@ -14,8 +14,6 @@ fn main() {
         .unwrap();
 
     let mut player_position = Vector2 { x: 0.0, y: 0.0 };
-    let mut player_tile_x = 0;
-    let mut player_tile_y = 0;
     let frame_rec = Rectangle {
         x: 0.0,
         y: 0.0,
@@ -39,6 +37,7 @@ fn main() {
                 current_frame = 0;
             }
         }
+
         if rl.is_key_down(KeyboardKey::KEY_RIGHT) {
             player_position.x += 5 as f32;
         }
@@ -51,6 +50,24 @@ fn main() {
         if rl.is_key_down(KeyboardKey::KEY_UP) {
             player_position.y -= 5 as f32;
         }
+
+        // Check player position to avoid moving outside tilemap limits
+        if player_position.x < 0.0 {
+            player_position.x = 0.0;
+        }
+
+        if player_position.y < 0.0 {
+            player_position.y = 0.0;
+        }
+
+        if player_position.x >= (SCREEN_WIDTH as f32) - (hero_texture.width / 4) as f32 {
+            player_position.x = (SCREEN_WIDTH as f32) - (hero_texture.width / 4) as f32;
+        }
+
+        if player_position.y >= (SCREEN_HEIGHT as f32) - (hero_texture.height) as f32 {
+            player_position.y = (SCREEN_HEIGHT as f32) - (hero_texture.height) as f32;
+        }
+
         let mut d = rl.begin_drawing(&thread);
 
         d.clear_background(Color::WHITE);
