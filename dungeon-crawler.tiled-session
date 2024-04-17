@@ -16,12 +16,12 @@
             "scale": 3,
             "selectedLayer": 1,
             "viewCenter": {
-                "x": 182.66666666666663,
-                "y": 234.66666666666669
+                "x": 182,
+                "y": 272
             }
         }
     },
-    "last.imagePath": "/home/ihsankl/Downloads/Pixel Crawler - FREE - 1.8/Environment/Dungeon Prison/Assets",
+    "last.imagePath": "/home/ihsankl/Documents/github/dungeon-crawler/dungeon_crawler/src/assets/img/Environment/Dungeon Prison/Assets",
     "map.height": 50,
     "map.lastUsedFormat": "tmx",
     "map.tileHeight": 16,
