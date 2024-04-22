@@ -10,19 +10,21 @@
     "fileStates": {
         "Tiles.tsx": {
             "scaleInDock": 2,
-            "scaleInEditor": 3
+            "scaleInEditor": 2.66
         },
         "dungeon-crawler.tmx": {
             "scale": 3,
-            "selectedLayer": 1,
+            "selectedLayer": 0,
             "viewCenter": {
-                "x": 182,
-                "y": 272
+                "x": 332.3333333333333,
+                "y": 219.66666666666663
             }
         }
     },
+    "last.exportedFilePath": "/home/ihsankl/Documents/github/dungeon-crawler/dungeon_crawler",
     "last.imagePath": "/home/ihsankl/Documents/github/dungeon-crawler/dungeon_crawler/src/assets/img/Environment/Dungeon Prison/Assets",
     "map.height": 50,
+    "map.lastUsedExportFilter": "JSON map files (*.tmj *.json)",
     "map.lastUsedFormat": "tmx",
     "map.tileHeight": 16,
     "map.tileWidth": 16,

@@ -7,12 +7,6 @@ use raylib::{
 const SCREEN_WIDTH: i32 = 640;
 const SCREEN_HEIGHT: i32 = 480;
 
-#[derive(Debug)]
-struct Position {
-    x: i32,
-    y: i32,
-}
-
 fn main() {
     let (mut rl, thread) = raylib::init()
         .size(SCREEN_WIDTH, SCREEN_HEIGHT)
@@ -40,13 +34,18 @@ fn main() {
     let mut current_frame = 0;
     let mut frame_counter = 0;
     let frame_speed = 8;
-    let mut tile_boxes: Vec<Position> = vec![];
+    let mut tile_boxes: Vec<Rectangle> = vec![];
 
     for x in 0..tile_texture.width {
         for y in 0..tile_texture.height {
             let x = &x;
             if x % 16 == 0 && y % 16 == 0 {
-                tile_boxes.push(Position { x: *x, y });
+                tile_boxes.push(Rectangle {
+                    x: (*x as f32),
+                    y: (y as f32),
+                    width: 16.0,
+                    height: 16.0,
+                });
             }
         }
     }
@@ -66,16 +65,16 @@ fn main() {
         }
 
         if rl.is_key_down(KeyboardKey::KEY_RIGHT) {
-            player_position.x += 5 as f32;
+            player_position.x += 1 as f32;
         }
         if rl.is_key_down(KeyboardKey::KEY_LEFT) {
-            player_position.x -= 5 as f32;
+            player_position.x -= 1 as f32;
         }
         if rl.is_key_down(KeyboardKey::KEY_DOWN) {
-            player_position.y += 5 as f32;
+            player_position.y += 1 as f32;
         }
         if rl.is_key_down(KeyboardKey::KEY_UP) {
-            player_position.y -= 5 as f32;
+            player_position.y -= 1 as f32;
         }
 
         // Check player position to avoid moving outside tilemap limits
@@ -97,23 +96,45 @@ fn main() {
 
         let mut d = rl.begin_drawing(&thread);
 
-        d.clear_background(Color::WHITE);
+        d.clear_background(Color::TAN);
+        let starting_coordinate = Vector2 { x: 128.0, y: 96.0 };
+        let end_coordinate = Vector2 {
+            x: (128.0 + (17.0 * 16.0)),
+            y: (96.0 + (10.0 * 16.0)),
+        };
+        // TODO: create a tile mapper rather than this shit
+        let tile_to_draw = vec![
+            79, 80, 80, 80, 80, 80, 81, 81, 81, 451, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81,
+            81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81,
+            81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81,
+            81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81,
+            81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81,
+            81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81,
+            81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81,
+            81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81, 81,
+        ];
 
-        for (_, val) in tile_boxes.iter().enumerate() {
-            d.draw_texture_rec(
-                tile_texture,
-                Rectangle {
-                    x: (val.x as f32),
-                    y: (val.y as f32),
-                    width: 16.0,
-                    height: 16.0,
-                },
-                Vector2 {
-                    x: (val.x as f32),
-                    y: (val.y as f32),
-                },
-                Color::WHITE,
-            );
+        let mut i = 0;
+        for x in (starting_coordinate.x as i32)..(end_coordinate.x as i32) {
+            for y in (starting_coordinate.y as i32)..(end_coordinate.y as i32) {
+                if x % 16 == 0 && y % 16 == 0 {
+                    d.draw_texture_rec(
+                        tile_texture,
+                        Rectangle {
+                            x: (tile_boxes[tile_to_draw[i]].x as f32),
+                            y: (tile_boxes[tile_to_draw[i]].y as f32),
+                            width: (tile_boxes[0].width as f32),
+                            height: (tile_boxes[0].height as f32),
+                        },
+                        Vector2 {
+                            x: (x as f32),
+                            y: (y as f32),
+                        },
+                        Color::WHITE,
+                    );
+                    i += 1;
+                }
+            }
         }
 
         d.draw_texture_rec(hero_texture, frame_rec, player_position, Color::WHITE);
