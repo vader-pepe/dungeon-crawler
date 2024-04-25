@@ -1,7 +1,8 @@
 use raylib::{
     color::Color,
     drawing::RaylibDraw,
-    ffi::{KeyboardKey, Rectangle, Vector2},
+    ffi::KeyboardKey,
+    math::{Rectangle, Vector2},
 };
 
 const SCREEN_WIDTH: i32 = 640;
@@ -63,18 +64,26 @@ fn main() {
             }
         }
 
+        let mut player_movement = Vector2 { x: 0.0, y: 0.0 };
         if rl.is_key_down(KeyboardKey::KEY_RIGHT) {
-            player_position.x += 1 as f32;
+            player_movement.x = 1.0;
         }
         if rl.is_key_down(KeyboardKey::KEY_LEFT) {
-            player_position.x -= 1 as f32;
+            player_movement.x = -1.0;
         }
         if rl.is_key_down(KeyboardKey::KEY_DOWN) {
-            player_position.y += 1 as f32;
+            player_movement.y = 1.0;
         }
         if rl.is_key_down(KeyboardKey::KEY_UP) {
-            player_position.y -= 1 as f32;
+            player_movement.y = -1.0;
         }
+
+        let normalized_movement = player_movement.normalized();
+        let movement_speed = 1.0;
+        player_position = Vector2 {
+            x: player_position.x + normalized_movement.x * movement_speed,
+            y: player_position.y + normalized_movement.y * movement_speed,
+        };
 
         // Check player position to avoid moving outside tilemap limits
         if player_position.x < 0.0 {
@@ -102,6 +111,7 @@ fn main() {
             y: (96.0 + (10.0 * 16.0)),
         };
         // TODO: create a tile mapper rather than this shit
+        // UPDATE: use tiled, export to json, parse here!
         let tile_to_draw = vec![
             79, 80, 80, 80, 80, 80, 81, 311, 311, 311, // first 10 column
             57, 58, 59, 100, 101, 102, 28, 311, 311, 311, // 20
