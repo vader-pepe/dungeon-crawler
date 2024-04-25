@@ -35,7 +35,12 @@ fn main() {
     let mut current_frame = 0;
     let mut frame_counter = 0;
     let frame_speed = 8;
-    let mut tile_boxes: Vec<Rectangle> = vec![];
+    let mut tile_boxes: Vec<Rectangle> = vec![Rectangle {
+        x: -1.0,
+        y: -1.0,
+        width: 0.0,
+        height: 0.0,
+    }];
 
     for x in 0..tile_texture.width {
         for y in 0..tile_texture.height {
@@ -79,10 +84,11 @@ fn main() {
         }
 
         let normalized_movement = player_movement.normalized();
-        let movement_speed = 1.0;
+        let frame_time = rl.get_frame_time();
+        let movement_speed = 32.0;
         player_position = Vector2 {
-            x: player_position.x + normalized_movement.x * movement_speed,
-            y: player_position.y + normalized_movement.y * movement_speed,
+            x: player_position.x + (normalized_movement.x * movement_speed * frame_time),
+            y: player_position.y + (normalized_movement.y * movement_speed * frame_time),
         };
 
         // Check player position to avoid moving outside tilemap limits
@@ -113,26 +119,27 @@ fn main() {
         // TODO: create a tile mapper rather than this shit
         // UPDATE: use tiled, export to json, parse here!
         let tile_to_draw = vec![
-            79, 80, 80, 80, 80, 80, 81, 311, 311, 311, // first 10 column
-            57, 58, 59, 100, 101, 102, 28, 311, 311, 311, // 20
-            82, 83, 84, 125, 126, 127, 28, 311, 311, 311, // 30
-            0, 1, 2, 125, 126, 127, 28, 311, 311, 311, // 40
-            25, 26, 27, 125, 126, 127, 28, 311, 311, 311, // 50
-            50, 51, 52, 212, 213, 127, 28, 311, 311, 311, // 60
-            39, 40, 41, 42, 238, 127, 53, 80, 80, 81, // 70
-            25, 26, 27, 19, 20, 21, 103, 133, 134, 28, // 80
-            25, 26, 43, 44, 45, 46, 128, 158, 159, 28, // 90
-            50, 51, 52, 69, 70, 71, 128, 158, 159, 28, // 100
-            14, 15, 16, 17, 126, 127, 3, 105, 105, 106, // 110
-            29, 100, 101, 101, 126, 127, 28, 311, 311, 311, // 120
-            25, 125, 126, 126, 126, 127, 28, 311, 311, 311, // 130
-            25, 125, 126, 126, 151, 152, 28, 311, 311, 311, // 140
-            25, 125, 126, 127, 181, 182, 28, 311, 311, 311, // 150
-            25, 125, 151, 152, 206, 207, 28, 311, 311, 311, // 160
-            104, 105, 105, 105, 105, 105, 106, 311, 311, 311, // 170
+            80, 81, 81, 81, 81, 81, 82, 0, 0, 0, // first 10 column
+            58, 59, 60, 101, 102, 103, 29, 0, 0, 0, // 20
+            83, 84, 85, 126, 127, 128, 29, 0, 0, 0, // 30
+            1, 2, 3, 126, 127, 128, 29, 0, 0, 0, // 40
+            26, 27, 28, 126, 127, 128, 29, 0, 0, 0, // 50
+            51, 52, 53, 213, 214, 128, 29, 0, 0, 0, // 60
+            40, 41, 42, 43, 239, 128, 54, 81, 81, 82, // 70
+            26, 27, 28, 20, 21, 22, 104, 134, 135, 29, // 80
+            26, 27, 44, 45, 46, 47, 129, 159, 160, 29, // 90
+            51, 52, 53, 70, 71, 72, 129, 159, 160, 29, // 100
+            15, 16, 17, 18, 127, 128, 4, 106, 106, 107, // 110
+            30, 101, 102, 102, 127, 128, 29, 0, 0, 0, // 120
+            26, 126, 127, 127, 127, 128, 29, 0, 0, 0, // 130
+            26, 126, 127, 127, 152, 153, 29, 0, 0, 0, // 140
+            26, 126, 127, 128, 182, 183, 29, 0, 0, 0, // 150
+            26, 126, 152, 153, 207, 208, 29, 0, 0, 0, // 160
+            105, 106, 106, 106, 106, 106, 107, 0, 0, 0, // 170
         ];
 
         let mut i = 0;
+        // Drawing Tilemap
         for x in (starting_coordinate.x as i32)..(end_coordinate.x as i32) {
             for y in (starting_coordinate.y as i32)..(end_coordinate.y as i32) {
                 if x % 16 == 0 && y % 16 == 0 {
@@ -141,8 +148,8 @@ fn main() {
                         Rectangle {
                             x: (tile_boxes[tile_to_draw[i]].x as f32),
                             y: (tile_boxes[tile_to_draw[i]].y as f32),
-                            width: (tile_boxes[0].width as f32),
-                            height: (tile_boxes[0].height as f32),
+                            width: (tile_boxes[tile_to_draw[i]].width as f32),
+                            height: (tile_boxes[tile_to_draw[i]].height as f32),
                         },
                         Vector2 {
                             x: (x as f32),
