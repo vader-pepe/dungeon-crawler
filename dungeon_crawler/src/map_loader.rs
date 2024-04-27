@@ -1,4 +1,7 @@
-use raylib::{ffi::Rectangle, texture::Texture2D, RaylibHandle, RaylibThread};
+use raylib::{
+    ffi::{Rectangle, Texture2D},
+    RaylibHandle, RaylibThread,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::from_str;
 use std::fs;
@@ -63,18 +66,29 @@ pub fn parse_json_to_map(filename: &str) -> Map {
 }
 
 pub fn breakdown_tiles(data: Vec<Tileset>) -> Vec<Rectangle> {
-    let mut x = 0;
-    let mut y = 0;
     let mut tiles_arr: Vec<Rectangle> = vec![];
 
     for (index, tiles) in data.iter().enumerate() {
-        if index == 0 && tiles.firstgid == 1 {
+        let mut x = 0;
+        let mut y = 0;
+
+        let current_pointer = index;
+        let previous_pointer = if index > 0 {
+            current_pointer - 1
+        } else {
+            current_pointer
+        };
+        if current_pointer != previous_pointer + 1 {
+            x = 0;
+            y = 0;
+        }
+        if tiles.firstgid == 1 {
             tiles_arr.push(Rectangle {
                 x: -(tiles.tilewidth) as f32,
                 y: -(tiles.tileheight) as f32,
                 height: 0.0,
                 width: 0.0,
-            })
+            });
         }
         for _ in 0..tiles.tilecount {
             tiles_arr.push(Rectangle {
@@ -97,6 +111,7 @@ pub fn breakdown_tiles(data: Vec<Tileset>) -> Vec<Rectangle> {
 pub fn load_tile_texture(rl: &mut RaylibHandle, th: &RaylibThread, filename: &str) -> Texture2D {
     let tiles_texture = rl
         .load_texture(&th, filename)
-        .expect("cannot load the file!");
+        .expect("cannot load the file!")
+        .clone();
     tiles_texture
 }

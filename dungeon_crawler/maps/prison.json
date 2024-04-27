@@ -157,6 +157,19 @@
          "tilecount":625,
          "tileheight":16,
          "tilewidth":16
+        }, 
+        {
+         "columns":25,
+         "firstgid":1251,
+         "image":"..\/src\/assets\/img\/Environment\/Green Woods\/Assets\/Tiles.png",
+         "imageheight":400,
+         "imagewidth":400,
+         "margin":0,
+         "name":"green woods",
+         "spacing":0,
+         "tilecount":625,
+         "tileheight":16,
+         "tilewidth":16
         }],
  "tilewidth":16,
  "type":"map",

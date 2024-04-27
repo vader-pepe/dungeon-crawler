@@ -2,9 +2,8 @@ use map_loader::{breakdown_tiles, load_tile_texture, parse_json_to_map};
 use raylib::{
     color::Color,
     drawing::RaylibDraw,
-    ffi::KeyboardKey,
+    ffi::{KeyboardKey, Texture2D},
     math::{Rectangle, Vector2},
-    texture::Texture2D,
 };
 
 mod map_loader;
@@ -39,11 +38,11 @@ fn main() {
     // let tiles = parse_json(JSONType::Tiles, "Tiles.json").unwrap_left();
     // let map = parse_json(JSONType::Map, "dungeon-crawler.json").unwrap_right();
     // let map_layers = &map.layers;
-    let map = parse_json_to_map("./src/maps/prison.json");
+    let map = parse_json_to_map("./maps/prison.json");
     let mut tiles_textures: Vec<&Texture2D> = vec![];
     for (_, val) in map.tilesets.iter().enumerate() {
-        let rl = &mut rl;
-        tiles_textures.push(&load_tile_texture(rl, &thread, val.image.as_str()));
+        let t = load_tile_texture(&mut rl, &thread, val.image.as_str());
+        tiles_textures.push(&t);
     }
 
     // let tiles_textures = &rl
