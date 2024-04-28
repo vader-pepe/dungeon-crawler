@@ -1,0 +1,14 @@
+{ "columns":2,
+ "image":"..\/src\/assets\/img\/Weapons\/Hands\/Hands.png",
+ "imageheight":64,
+ "imagewidth":32,
+ "margin":0,
+ "name":"hands",
+ "spacing":0,
+ "tilecount":8,
+ "tiledversion":"1.10.2",
+ "tileheight":16,
+ "tilewidth":16,
+ "type":"tileset",
+ "version":"1.10"
+}

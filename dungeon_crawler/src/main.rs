@@ -1,18 +1,18 @@
-use map_loader::{breakdown_tiles, load_tile_texture, parse_json_to_map};
+mod map_helper;
+use map_helper::{breakdown_tiles, format_pathname, parse_json_to_map};
+
 use raylib::{
     color::Color,
     drawing::RaylibDraw,
-    ffi::{KeyboardKey, Texture2D},
+    ffi::KeyboardKey,
     math::{Rectangle, Vector2},
 };
 
-mod map_loader;
-
-const SCREEN_WIDTH: i32 = 640;
-const SCREEN_HEIGHT: i32 = 480;
-// tile size fixed 16x16 pixel
 const TILES_WIDTH: i32 = 16;
 const TILES_HEIGHT: i32 = 16;
+const SCREEN_WIDTH: i32 = 40 * TILES_WIDTH;
+const SCREEN_HEIGHT: i32 = 30 * TILES_HEIGHT;
+// tile size fixed 16x16 pixel
 // total tiles horizontally is 40 because
 // 16x40 = 640
 const TILE_WIDTH_COUNT: i32 = SCREEN_WIDTH / TILES_WIDTH;
@@ -26,56 +26,20 @@ fn main() {
         .title("Dungeon Crawler")
         .build();
 
-    //
-    // steps:
-    // 1. parse the map JSON
-    // 2. get the tilesets property
-    // 3. load the images from it
-    // 4. loop over the tilecount. if it first tilesets,
-    //    fill the first element with empty tile.
-    // TODO: what is this bro? XD
-    //
-    // let tiles = parse_json(JSONType::Tiles, "Tiles.json").unwrap_left();
-    // let map = parse_json(JSONType::Map, "dungeon-crawler.json").unwrap_right();
-    // let map_layers = &map.layers;
-    let map = parse_json_to_map("./maps/prison.json");
-    let mut tiles_textures: Vec<&Texture2D> = vec![];
-    for (_, val) in map.tilesets.iter().enumerate() {
-        let t = load_tile_texture(&mut rl, &thread, val.image.as_str());
-        tiles_textures.push(&t);
+    let map_1 = parse_json_to_map("./maps/map_1.json");
+    let mut tiles_textures = vec![];
+    for (_, tileset) in map_1.tilesets.iter().enumerate() {
+        let rl = &mut rl;
+        let json_path = format_pathname(tileset.image.as_str());
+        let t = rl
+            .load_texture(&thread, json_path.as_str())
+            .expect("cannot load texture!");
+        tiles_textures.push(t);
     }
 
-    // let tiles_textures = &rl
-    //     .load_texture(&thread, tiles.image.as_str())
-    //     .expect("unable to load texture");
-    // first element must be empty
-    // let mut tile_arr: Vec<Rectangle> = vec![Rectangle {
-    //     x: -16.0,
-    //     y: -16.0,
-    //     width: 0.0,
-    //     height: 0.0,
-    // }];
-    let mut tile_arr = breakdown_tiles(map.tilesets);
+    let tile_arr = breakdown_tiles(&map_1.tilesets);
 
-    // tiles breakdown
-    // {
-    //     let mut x = 0;
-    //     let mut y = 0;
-    //     for _ in 0..tiles.tilecount {
-    //         tile_arr.push(Rectangle {
-    //             x: x as f32,
-    //             y: y as f32,
-    //             width: TILES_WIDTH as f32,
-    //             height: TILES_HEIGHT as f32,
-    //         });
-    //         x += TILES_WIDTH;
-    //         if x % tiles.columns == 0 {
-    //             x = 0;
-    //             y += TILES_HEIGHT;
-    //         }
-    //     }
-    // }
-
+    // TODO: handle player texture better
     let hero_texture = &rl
         .load_texture(&thread, "./src/assets/img/Heroes/Rogue/Idle/Idle-Sheet.png")
         .expect("unable to load texture");
@@ -123,7 +87,7 @@ fn main() {
             }
 
             let normalized_movement = player_movement.normalized();
-            let movement_speed = 32.0;
+            let movement_speed = 64.0;
             player_position = Vector2 {
                 x: player_position.x + (normalized_movement.x * movement_speed * frame_time),
                 y: player_position.y + (normalized_movement.y * movement_speed * frame_time),
@@ -151,36 +115,43 @@ fn main() {
 
         d.clear_background(Color::new(20, 20, 18, 1));
 
-        // TODO: handle multiple texture
-        //
         // Drawing Tilemap
         {
-            for (_layer_index, layer) in map.layers.iter().enumerate() {
+            for (_layer_index, layer) in map_1.layers.iter().enumerate() {
                 let data = &layer.data;
                 let mut x = 0;
                 let mut y = 0;
 
-                for i in 0..(TILE_WIDTH_COUNT * TILE_HEIGHT_COUNT) {
-                    let i = i as usize;
-                    let xz = tiles_textures[0];
-                    d.draw_texture_rec(
-                        xz,
-                        Rectangle {
-                            x: tile_arr[data[i] as usize].x,
-                            y: tile_arr[data[i] as usize].y,
-                            width: TILES_WIDTH as f32,
-                            height: TILES_HEIGHT as f32,
-                        },
-                        Vector2 {
-                            x: x as f32,
-                            y: y as f32,
-                        },
-                        Color::WHITE,
-                    );
-                    x += TILES_WIDTH;
-                    if x % SCREEN_WIDTH == 0 {
-                        x = 0;
-                        y += TILES_HEIGHT;
+                if layer.visible {
+                    for i in 0..(TILE_WIDTH_COUNT * TILE_HEIGHT_COUNT) {
+                        let i = i as usize;
+                        let mut texture = &tiles_textures[0];
+                        for (j, tiles) in map_1.tilesets.iter().enumerate() {
+                            if layer.data[i] >= tiles.firstgid
+                                && layer.data[i] <= (tiles.firstgid + tiles.tilecount - 1)
+                            {
+                                texture = &tiles_textures[j]
+                            }
+                        }
+                        d.draw_texture_rec(
+                            texture,
+                            Rectangle {
+                                x: tile_arr[data[i] as usize].x,
+                                y: tile_arr[data[i] as usize].y,
+                                width: TILES_WIDTH as f32,
+                                height: TILES_HEIGHT as f32,
+                            },
+                            Vector2 {
+                                x: x as f32,
+                                y: y as f32,
+                            },
+                            Color::WHITE,
+                        );
+                        x += TILES_WIDTH;
+                        if x % SCREEN_WIDTH == 0 {
+                            x = 0;
+                            y += TILES_HEIGHT;
+                        }
                     }
                 }
             }

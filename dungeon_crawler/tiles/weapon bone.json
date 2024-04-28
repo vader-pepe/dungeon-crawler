@@ -1,0 +1,14 @@
+{ "columns":14,
+ "image":"..\/src\/assets\/img\/Weapons\/Bone\/Bone.png",
+ "imageheight":144,
+ "imagewidth":224,
+ "margin":0,
+ "name":"weapon bone",
+ "spacing":0,
+ "tilecount":126,
+ "tiledversion":"1.10.2",
+ "tileheight":16,
+ "tilewidth":16,
+ "type":"tileset",
+ "version":"1.10"
+}
