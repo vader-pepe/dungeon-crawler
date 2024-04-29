@@ -62,8 +62,6 @@ pub fn parse_json_to_map(filename: &str) -> Map {
     v
 }
 
-// TODO: didn't account for different size tiles. fix later.
-// also have weird bugs
 pub fn breakdown_tiles(data: &Vec<Tileset>) -> Vec<Rectangle> {
     let mut tiles_arr: Vec<Rectangle> = vec![];
 
@@ -97,7 +95,7 @@ pub fn breakdown_tiles(data: &Vec<Tileset>) -> Vec<Rectangle> {
                 height: tiles.tileheight as f32,
             });
             x += tiles.tilewidth;
-            if x % tiles.columns == 0 {
+            if x >= (tiles.columns * tiles.tilewidth) {
                 x = 0;
                 y += tiles.tileheight;
             }
