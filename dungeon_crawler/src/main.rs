@@ -116,6 +116,7 @@ fn main() {
         d.clear_background(Color::new(20, 20, 18, 1));
 
         // Drawing Tilemap
+        // TODO: handle rotation
         {
             for (_layer_index, layer) in map_1.layers.iter().enumerate() {
                 let data = &layer.data;
