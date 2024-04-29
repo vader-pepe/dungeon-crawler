@@ -1,5 +1,5 @@
-mod map_helper;
-use map_helper::{breakdown_tiles, format_pathname, parse_json_to_map};
+mod tiles_helper;
+use tiles_helper::{breakdown_tiles, format_pathname, parse_json_to_map};
 
 use raylib::{
     color::Color,
