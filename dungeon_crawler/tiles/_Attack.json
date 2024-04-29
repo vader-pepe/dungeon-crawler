@@ -1,0 +1,14 @@
+{ "columns":30,
+ "image":"..\/src\/assets\/img\/Anim\/_Attack.png",
+ "imageheight":80,
+ "imagewidth":480,
+ "margin":0,
+ "name":"_Attack",
+ "spacing":0,
+ "tilecount":150,
+ "tiledversion":"1.10.2",
+ "tileheight":16,
+ "tilewidth":16,
+ "type":"tileset",
+ "version":"1.10"
+}

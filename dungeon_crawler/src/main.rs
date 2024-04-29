@@ -1,5 +1,5 @@
 mod tiles_helper;
-use tiles_helper::{breakdown_tiles, format_pathname, parse_json_to_map};
+use tiles_helper::{breakdown_tiles, format_pathname};
 
 use raylib::{
     color::Color,
@@ -7,6 +7,8 @@ use raylib::{
     ffi::KeyboardKey,
     math::{Rectangle, Vector2},
 };
+use std::{path::PathBuf, usize};
+use tiled_json_rs;
 
 const TILES_WIDTH: i32 = 16;
 const TILES_HEIGHT: i32 = 16;
@@ -26,23 +28,45 @@ fn main() {
         .title("Dungeon Crawler")
         .build();
 
-    let map_1 = parse_json_to_map("./maps/map_1.json");
+    let map_1 = tiled_json_rs::Map::load_from_file(&PathBuf::from("./maps/map_1.json").as_path())
+        .expect("Failed to load map");
+
     let mut tiles_textures = vec![];
-    for (_, tileset) in map_1.tilesets.iter().enumerate() {
+    for tileset in &map_1.tile_sets {
         let rl = &mut rl;
-        let json_path = format_pathname(tileset.image.as_str());
+        let json_path = format_pathname(
+            tileset
+                .image
+                .clone()
+                .into_os_string()
+                .into_string()
+                .unwrap()
+                .as_str(),
+        );
         let t = rl
             .load_texture(&thread, json_path.as_str())
             .expect("cannot load texture!");
         tiles_textures.push(t);
     }
 
-    let tile_arr = breakdown_tiles(&map_1.tilesets);
+    let tile_arr = breakdown_tiles(&map_1.tile_sets);
 
-    // TODO: handle player texture better
+    // TODO: handle texture better
     let hero_texture = &rl
         .load_texture(&thread, "./src/assets/img/Heroes/Rogue/Idle/Idle-Sheet.png")
-        .expect("unable to load texture");
+        .expect("unable to load texture!");
+
+    let hands_texture = &rl
+        .load_texture(&thread, "./src/assets/img/Weapons/Hands/Hands.png")
+        .expect("unable to load texture!");
+
+    let weapon_texture = &rl
+        .load_texture(&thread, "./src/assets/img/Weapons/Wood/Wood.png")
+        .expect("unable to load texture!");
+
+    let slash_texture = &rl
+        .load_texture(&thread, "./src/assets/img/Anim/_Attack.png")
+        .expect("unable to load texture!");
 
     let mut player_position = Vector2 { x: 0.0, y: 0.0 };
     let frame_rec = Rectangle {
@@ -51,25 +75,24 @@ fn main() {
         width: (hero_texture.width / 4) as f32,
         height: (hero_texture.height) as f32,
     };
-    let mut current_frame = 0;
-    let mut frame_counter = 0;
-    let frame_speed = 8;
+    let mut timer_current = 0.0;
+    let timer_total = 1.0;
+    let mut tick = 0.0;
 
     rl.set_target_fps(60);
 
     while !rl.window_should_close() {
         let frame_time = rl.get_frame_time();
-        frame_counter += 1;
-
-        if frame_counter >= (60 / frame_speed) {
-            frame_counter = 0;
-            current_frame += 1;
-
-            if current_frame > 5 {
-                current_frame = 0;
-            }
+        timer_current += frame_time;
+        if timer_current >= timer_total {
+            // println!("1 second has passed!");
+            timer_current -= timer_total;
+            tick += timer_total;
         }
 
+        let can_swing = tick % 1.5 == 0.0;
+        // TODO: fix swing rate
+        let is_attack_button_pressed = rl.is_key_down(KeyboardKey::KEY_Z);
         // player movement
         {
             let mut player_movement = Vector2 { x: 0.0, y: 0.0 };
@@ -114,49 +137,110 @@ fn main() {
         let mut d = rl.begin_drawing(&thread);
 
         d.clear_background(Color::new(20, 20, 18, 1));
-
         // Drawing Tilemap
         // TODO: handle rotation
         {
-            for (_layer_index, layer) in map_1.layers.iter().enumerate() {
-                let data = &layer.data;
+            for (_layer_index, map_layer) in map_1.layers.iter().enumerate() {
                 let mut x = 0;
                 let mut y = 0;
 
-                if layer.visible {
-                    for i in 0..(TILE_WIDTH_COUNT * TILE_HEIGHT_COUNT) {
-                        let i = i as usize;
-                        let mut texture = &tiles_textures[0];
-                        for (j, tiles) in map_1.tilesets.iter().enumerate() {
-                            if layer.data[i] >= tiles.firstgid
-                                && layer.data[i] <= (tiles.firstgid + tiles.tilecount - 1)
-                            {
-                                texture = &tiles_textures[j]
+                match &map_layer.layer_type {
+                    tiled_json_rs::LayerType::TileLayer(tile_layer) => {
+                        for tile_number_on_screen in 0..(TILE_WIDTH_COUNT * TILE_HEIGHT_COUNT) {
+                            let tile_number_on_screen = tile_number_on_screen as usize;
+                            let mut texture = &tiles_textures[0];
+                            for (j, tiles) in map_1.tile_sets.iter().enumerate() {
+                                if tile_layer.data[tile_number_on_screen] >= tiles.first_gid
+                                    && tile_layer.data[tile_number_on_screen]
+                                        <= (tiles.first_gid + tiles.tile_count - 1)
+                                {
+                                    texture = &tiles_textures[j]
+                                }
+                            }
+                            d.draw_texture_rec(
+                                texture,
+                                Rectangle {
+                                    x: tile_arr[tile_layer.data[tile_number_on_screen] as usize].x,
+                                    y: tile_arr[tile_layer.data[tile_number_on_screen] as usize].y,
+                                    width: TILES_WIDTH as f32,
+                                    height: TILES_HEIGHT as f32,
+                                },
+                                Vector2 {
+                                    x: x as f32,
+                                    y: y as f32,
+                                },
+                                Color::WHITE,
+                            );
+                            x += TILES_WIDTH;
+                            if x % SCREEN_WIDTH == 0 {
+                                x = 0;
+                                y += TILES_HEIGHT;
+                            }
+
+                            if y % SCREEN_HEIGHT == 0 {
+                                y = 0;
                             }
                         }
-                        d.draw_texture_rec(
-                            texture,
-                            Rectangle {
-                                x: tile_arr[data[i] as usize].x,
-                                y: tile_arr[data[i] as usize].y,
-                                width: TILES_WIDTH as f32,
-                                height: TILES_HEIGHT as f32,
-                            },
-                            Vector2 {
-                                x: x as f32,
-                                y: y as f32,
-                            },
-                            Color::WHITE,
-                        );
-                        x += TILES_WIDTH;
-                        if x % SCREEN_WIDTH == 0 {
-                            x = 0;
-                            y += TILES_HEIGHT;
-                        }
+                    }
+                    tiled_json_rs::LayerType::ImageLayer(_image) => {
+                        todo!()
+                    }
+                    tiled_json_rs::LayerType::ObjectGroup(_objects) => {
+                        todo!()
+                    }
+                    tiled_json_rs::LayerType::Group { layers: _ } => {
+                        todo!()
                     }
                 }
             }
         }
         d.draw_texture_rec(hero_texture, frame_rec, player_position, Color::WHITE);
+        d.draw_texture_rec(
+            hands_texture,
+            Rectangle {
+                x: 0.0,
+                y: 16.0,
+                width: 32.0,
+                height: 16.0,
+            },
+            Vector2 {
+                x: player_position.x,
+                y: player_position.y + 16.0,
+            },
+            Color::WHITE,
+        );
+        // attack anim. currently too fast
+        // TODO: fix quick frame
+        if is_attack_button_pressed && can_swing {
+            d.draw_texture_rec(
+                slash_texture,
+                Rectangle {
+                    x: 336.0,
+                    y: 32.0,
+                    height: (3 * 16) as f32,
+                    width: (2 * 16) as f32,
+                },
+                Vector2 {
+                    x: (player_position.x + 16.0),
+                    y: (player_position.y - 16.0),
+                },
+                Color::WHITE,
+            );
+        } else {
+            d.draw_texture_rec(
+                weapon_texture,
+                Rectangle {
+                    x: 32.0,
+                    y: 16.0,
+                    height: 32.0,
+                    width: 16.0,
+                },
+                Vector2 {
+                    x: player_position.x + 16.0,
+                    y: player_position.y,
+                },
+                Color::WHITE,
+            );
+        }
     }
 }
