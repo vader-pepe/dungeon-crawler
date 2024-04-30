@@ -22,6 +22,7 @@ const TILE_WIDTH_COUNT: i32 = SCREEN_WIDTH / TILES_WIDTH;
 // 16x30 = 480
 const TILE_HEIGHT_COUNT: i32 = SCREEN_HEIGHT / TILES_HEIGHT;
 
+// TODO: setup CICD, cross compile, wasm
 fn main() {
     let (mut rl, thread) = raylib::init()
         .size(SCREEN_WIDTH, SCREEN_HEIGHT)
