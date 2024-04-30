@@ -68,7 +68,10 @@ fn main() {
         .load_texture(&thread, "./src/assets/img/Anim/_Attack.png")
         .expect("unable to load texture!");
 
-    let mut player_position = Vector2 { x: 0.0, y: 0.0 };
+    let mut player_position = Vector2 {
+        x: (20 * TILES_WIDTH) as f32,
+        y: (30 * TILES_HEIGHT) as f32,
+    };
     let frame_rec = Rectangle {
         x: 0.0,
         y: 0.0,
@@ -77,22 +80,18 @@ fn main() {
     };
     let mut timer_current = 0.0;
     let timer_total = 1.0;
-    let mut tick = 0.0;
 
     rl.set_target_fps(60);
 
-    while !rl.window_should_close() {
-        let frame_time = rl.get_frame_time();
+    while !&rl.window_should_close() {
+        let frame_time = &rl.get_frame_time();
         timer_current += frame_time;
         if timer_current >= timer_total {
             // println!("1 second has passed!");
             timer_current -= timer_total;
-            tick += timer_total;
         }
 
-        let can_swing = tick % 1.5 == 0.0;
-        // TODO: fix swing rate
-        let is_attack_button_pressed = rl.is_key_down(KeyboardKey::KEY_Z);
+        let is_attacking = &rl.is_key_down(KeyboardKey::KEY_Z);
         // player movement
         {
             let mut player_movement = Vector2 { x: 0.0, y: 0.0 };
@@ -109,7 +108,7 @@ fn main() {
                 player_movement.y = -1.0;
             }
 
-            let normalized_movement = player_movement.normalized();
+            let normalized_movement = &player_movement.normalized();
             let movement_speed = 64.0;
             player_position = Vector2 {
                 x: player_position.x + (normalized_movement.x * movement_speed * frame_time),
@@ -211,7 +210,10 @@ fn main() {
         );
         // attack anim. currently too fast
         // TODO: fix quick frame
-        if is_attack_button_pressed && can_swing {
+        let fire_rate = 0.5;
+        let mut next_fire = 0.0;
+        if *is_attacking && frame_time > &next_fire {
+            next_fire = frame_time + fire_rate;
             d.draw_texture_rec(
                 slash_texture,
                 Rectangle {
@@ -242,5 +244,7 @@ fn main() {
                 Color::WHITE,
             );
         }
+        // this prevent the next_fire from being destroyed
+        format!("ayam: {next_fire}");
     }
 }
