@@ -1,6 +1,8 @@
 use raylib::math::Rectangle;
 use tiled_json_rs::TileSet;
 
+use crate::{TILES_HEIGHT, TILES_WIDTH};
+
 pub fn breakdown_tiles(data: &Vec<TileSet>) -> Vec<Rectangle> {
     let mut tiles_arr: Vec<Rectangle> = vec![];
 
@@ -20,8 +22,8 @@ pub fn breakdown_tiles(data: &Vec<TileSet>) -> Vec<Rectangle> {
         }
         if tiles.first_gid == 1 {
             tiles_arr.push(Rectangle {
-                x: -16.0,
-                y: -16.0,
+                x: -TILES_WIDTH as f32,
+                y: -TILES_HEIGHT as f32,
                 height: 0.0,
                 width: 0.0,
             });

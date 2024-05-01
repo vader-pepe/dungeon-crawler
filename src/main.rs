@@ -24,6 +24,7 @@ const TILE_HEIGHT_COUNT: i32 = SCREEN_HEIGHT / TILES_HEIGHT;
 
 // TODO: setup CICD, cross compile, wasm
 fn main() {
+    let mut next_fire = 0.0;
     let (mut rl, thread) = raylib::init()
         .size(SCREEN_WIDTH, SCREEN_HEIGHT)
         .title("Dungeon Crawler")
@@ -81,6 +82,7 @@ fn main() {
     };
     let mut timer_current = 0.0;
     let timer_total = 1.0;
+    let mut time_since_beginning = 1.0;
 
     rl.set_target_fps(60);
 
@@ -88,8 +90,8 @@ fn main() {
         let frame_time = &rl.get_frame_time();
         timer_current += frame_time;
         if timer_current >= timer_total {
-            // println!("1 second has passed!");
             timer_current -= timer_total;
+            time_since_beginning += 1.0;
         }
 
         let is_attacking = &rl.is_key_down(KeyboardKey::KEY_Z);
@@ -134,7 +136,7 @@ fn main() {
             }
         }
 
-        let mut d = rl.begin_drawing(&thread);
+        let d = &mut rl.begin_drawing(&thread);
 
         d.clear_background(Color::new(20, 20, 18, 1));
         // Drawing Tilemap
@@ -176,10 +178,6 @@ fn main() {
                                 x = 0;
                                 y += TILES_HEIGHT;
                             }
-
-                            if y % SCREEN_HEIGHT == 0 {
-                                y = 0;
-                            }
                         }
                     }
                     tiled_json_rs::LayerType::ImageLayer(_image) => {
@@ -209,12 +207,11 @@ fn main() {
             },
             Color::WHITE,
         );
-        // attack anim. currently too fast
-        // TODO: fix quick frame
-        let fire_rate = 0.5;
-        let mut next_fire = 0.0;
-        if *is_attacking && frame_time > &next_fire {
-            next_fire = frame_time + fire_rate;
+
+        // simple attack anim
+        let fire_rate = 1.5;
+        if *is_attacking && time_since_beginning > next_fire {
+            next_fire = time_since_beginning + fire_rate;
             d.draw_texture_rec(
                 slash_texture,
                 Rectangle {
@@ -245,7 +242,5 @@ fn main() {
                 Color::WHITE,
             );
         }
-        // this prevent the next_fire from being destroyed
-        format!("ayam: {next_fire}");
     }
 }

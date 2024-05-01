@@ -113,8 +113,6 @@ name = "dungeon_crawler"
 version = "0.1.0"
 dependencies = [
  "raylib",
- "serde",
- "serde_json",
  "tiled-json-rs",
 ]
 
