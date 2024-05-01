@@ -74,24 +74,25 @@ fn main() {
         x: (20 * TILES_WIDTH) as f32,
         y: (30 * TILES_HEIGHT) as f32,
     };
-    let frame_rec = Rectangle {
-        x: 0.0,
-        y: 0.0,
+
+    let mut player_hitbox = Rectangle {
+        x: player_position.x,
+        y: player_position.y,
         width: (hero_texture.width / 4) as f32,
-        height: (hero_texture.height) as f32,
+        height: hero_texture.height as f32,
     };
+
     let mut timer_current = 0.0;
     let timer_total = 1.0;
-    let mut time_since_beginning = 1.0;
 
     rl.set_target_fps(60);
 
     while !&rl.window_should_close() {
         let frame_time = &rl.get_frame_time();
+        let time_since_beginning = &rl.get_time();
         timer_current += frame_time;
         if timer_current >= timer_total {
             timer_current -= timer_total;
-            time_since_beginning += 1.0;
         }
 
         let is_attacking = &rl.is_key_down(KeyboardKey::KEY_Z);
@@ -118,6 +119,19 @@ fn main() {
                 y: player_position.y + (normalized_movement.y * movement_speed * frame_time),
             };
 
+            player_hitbox = Rectangle {
+                x: player_position.x,
+                y: player_position.y,
+                width: (hero_texture.width / 4) as f32,
+                height: (hero_texture.height / 2) as f32,
+            };
+
+            // let check_collision = player_hitbox.check_collision_recs(&door_rec);
+
+            // if check_collision {
+            //     println!("nerds");
+            // }
+
             // Check player position to avoid moving outside tilemap limits
             if player_position.x < 0.0 {
                 player_position.x = 0.0;
@@ -142,6 +156,7 @@ fn main() {
         // Drawing Tilemap
         // TODO: handle rotation
         {
+            // TODO: multi threading?? lessgoo
             for (_layer_index, map_layer) in map_1.layers.iter().enumerate() {
                 let mut x = 0;
                 let mut y = 0;
@@ -192,7 +207,17 @@ fn main() {
                 }
             }
         }
-        d.draw_texture_rec(hero_texture, frame_rec, player_position, Color::WHITE);
+        d.draw_texture_rec(
+            hero_texture,
+            Rectangle {
+                x: 0.0,
+                y: 0.0,
+                width: (hero_texture.width / 4) as f32,
+                height: (hero_texture.height) as f32,
+            },
+            player_position,
+            Color::WHITE,
+        );
         d.draw_texture_rec(
             hands_texture,
             Rectangle {
@@ -209,8 +234,8 @@ fn main() {
         );
 
         // simple attack anim
-        let fire_rate = 1.5;
-        if *is_attacking && time_since_beginning > next_fire {
+        let fire_rate = 0.5;
+        if *is_attacking && time_since_beginning > &next_fire {
             next_fire = time_since_beginning + fire_rate;
             d.draw_texture_rec(
                 slash_texture,
