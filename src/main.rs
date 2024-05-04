@@ -3,12 +3,13 @@ use tiles_helper::{breakdown_tiles, format_pathname};
 
 use raylib::{
     color::Color,
-    drawing::RaylibDraw,
+    drawing::{RaylibDraw, RaylibDrawHandle},
     ffi::KeyboardKey,
     math::{Rectangle, Vector2},
+    texture::Texture2D,
 };
-use std::{path::PathBuf, usize};
-use tiled_json_rs;
+use std::path::PathBuf;
+use tiled_json_rs::{Map, ObjectType};
 
 const TILES_WIDTH: i32 = 16;
 const TILES_HEIGHT: i32 = 16;
@@ -33,7 +34,7 @@ fn main() {
     let map_1 = tiled_json_rs::Map::load_from_file(&PathBuf::from("./maps/map_1.json").as_path())
         .expect("Failed to load map");
 
-    let mut tiles_textures = vec![];
+    let mut tiles_textures: Vec<Texture2D> = vec![];
     for tileset in &map_1.tile_sets {
         let rl = &mut rl;
         let json_path = format_pathname(
@@ -54,6 +55,7 @@ fn main() {
     let tile_arr = breakdown_tiles(&map_1.tile_sets);
 
     // TODO: handle texture better
+    // tips: create prefabs(game object?) like unity
     let hero_texture = &rl
         .load_texture(&thread, "./src/assets/img/Heroes/Rogue/Idle/Idle-Sheet.png")
         .expect("unable to load texture!");
@@ -75,7 +77,14 @@ fn main() {
         y: (30 * TILES_HEIGHT) as f32,
     };
 
-    let mut player_hitbox = Rectangle {
+    let door_rec = Rectangle {
+        x: (19 * TILES_WIDTH) as f32,
+        y: (22 * TILES_HEIGHT) as f32,
+        width: (2 * TILES_WIDTH) as f32,
+        height: (1 * TILES_HEIGHT) as f32,
+    };
+
+    let mut _player_hitbox = Rectangle {
         x: player_position.x,
         y: player_position.y,
         width: (hero_texture.width / 4) as f32,
@@ -119,18 +128,25 @@ fn main() {
                 y: player_position.y + (normalized_movement.y * movement_speed * frame_time),
             };
 
-            player_hitbox = Rectangle {
+            _player_hitbox = Rectangle {
                 x: player_position.x,
                 y: player_position.y,
                 width: (hero_texture.width / 4) as f32,
                 height: (hero_texture.height / 2) as f32,
             };
 
-            // let check_collision = player_hitbox.check_collision_recs(&door_rec);
+            // these 2 are basically the same
+            let check_collision = _player_hitbox.check_collision_recs(&door_rec); // returning
+                                                                                  // boolean
+            let get_collision = _player_hitbox.get_collision_rec(&door_rec); // returnin Rectangle
+            match get_collision {
+                None => (),
+                Some(_rect) => { /* TODO: handle collision,*/ }
+            };
 
-            // if check_collision {
-            //     println!("nerds");
-            // }
+            if check_collision {
+                // TODO: handle collision
+            }
 
             // Check player position to avoid moving outside tilemap limits
             if player_position.x < 0.0 {
@@ -152,61 +168,8 @@ fn main() {
 
         let d = &mut rl.begin_drawing(&thread);
 
-        d.clear_background(Color::new(20, 20, 18, 1));
-        // Drawing Tilemap
-        // TODO: handle rotation
-        {
-            // TODO: multi threading?? lessgoo
-            for (_layer_index, map_layer) in map_1.layers.iter().enumerate() {
-                let mut x = 0;
-                let mut y = 0;
+        draw_scene(d, &map_1, &tiles_textures, &tile_arr);
 
-                match &map_layer.layer_type {
-                    tiled_json_rs::LayerType::TileLayer(tile_layer) => {
-                        for tile_number_on_screen in 0..(TILE_WIDTH_COUNT * TILE_HEIGHT_COUNT) {
-                            let tile_number_on_screen = tile_number_on_screen as usize;
-                            let mut texture = &tiles_textures[0];
-                            for (j, tiles) in map_1.tile_sets.iter().enumerate() {
-                                if tile_layer.data[tile_number_on_screen] >= tiles.first_gid
-                                    && tile_layer.data[tile_number_on_screen]
-                                        <= (tiles.first_gid + tiles.tile_count - 1)
-                                {
-                                    texture = &tiles_textures[j]
-                                }
-                            }
-                            d.draw_texture_rec(
-                                texture,
-                                Rectangle {
-                                    x: tile_arr[tile_layer.data[tile_number_on_screen] as usize].x,
-                                    y: tile_arr[tile_layer.data[tile_number_on_screen] as usize].y,
-                                    width: TILES_WIDTH as f32,
-                                    height: TILES_HEIGHT as f32,
-                                },
-                                Vector2 {
-                                    x: x as f32,
-                                    y: y as f32,
-                                },
-                                Color::WHITE,
-                            );
-                            x += TILES_WIDTH;
-                            if x % SCREEN_WIDTH == 0 {
-                                x = 0;
-                                y += TILES_HEIGHT;
-                            }
-                        }
-                    }
-                    tiled_json_rs::LayerType::ImageLayer(_image) => {
-                        todo!()
-                    }
-                    tiled_json_rs::LayerType::ObjectGroup(_objects) => {
-                        todo!()
-                    }
-                    tiled_json_rs::LayerType::Group { layers: _ } => {
-                        todo!()
-                    }
-                }
-            }
-        }
         d.draw_texture_rec(
             hero_texture,
             Rectangle {
@@ -266,6 +229,92 @@ fn main() {
                 },
                 Color::WHITE,
             );
+        }
+
+        d.draw_triangle(
+            Vector2 { x: 0.0, y: 0.0 },
+            Vector2 { x: 10.0, y: 10.0 },
+            Vector2 { x: 0.0, y: 0.0 },
+            Color::TAN,
+        );
+    }
+}
+
+// Drawing Tilemap
+fn draw_scene(
+    d: &mut RaylibDrawHandle,
+    map: &Map,
+    tiles_textures: &Vec<Texture2D>,
+    tiles: &Vec<Rectangle>,
+) {
+    d.clear_background(Color::new(20, 20, 18, 1));
+    // TODO: handle rotation
+    {
+        // TODO: multi threading?? lessgoo
+        for (_layer_index, map_layer) in map.layers.iter().enumerate() {
+            let mut x = 0;
+            let mut y = 0;
+
+            match &map_layer.layer_type {
+                tiled_json_rs::LayerType::ImageLayer(_image) => {
+                    todo!()
+                }
+                tiled_json_rs::LayerType::Group { layers: _ } => {
+                    todo!()
+                }
+                tiled_json_rs::LayerType::TileLayer(tile_layer) => {
+                    for tile_number_on_screen in 0..(TILE_WIDTH_COUNT * TILE_HEIGHT_COUNT) {
+                        let tile_number_on_screen = tile_number_on_screen as usize;
+                        let mut texture = &tiles_textures[0];
+                        for (j, tiles) in map.tile_sets.iter().enumerate() {
+                            if tile_layer.data[tile_number_on_screen] >= tiles.first_gid
+                                && tile_layer.data[tile_number_on_screen]
+                                    <= (tiles.first_gid + tiles.tile_count - 1)
+                            {
+                                texture = &tiles_textures[j]
+                            }
+                        }
+                        d.draw_texture_rec(
+                            texture,
+                            Rectangle {
+                                x: tiles[tile_layer.data[tile_number_on_screen] as usize].x,
+                                y: tiles[tile_layer.data[tile_number_on_screen] as usize].y,
+                                width: TILES_WIDTH as f32,
+                                height: TILES_HEIGHT as f32,
+                            },
+                            Vector2 {
+                                x: x as f32,
+                                y: y as f32,
+                            },
+                            Color::WHITE,
+                        );
+                        x += TILES_WIDTH;
+                        if x % SCREEN_WIDTH == 0 {
+                            x = 0;
+                            y += TILES_HEIGHT;
+                        }
+                    }
+                }
+                tiled_json_rs::LayerType::ObjectGroup(obj_group) => {
+                    // TODO: map collision starts here.
+                    // pain.
+                    for (obj_index, object) in obj_group.objects.iter().enumerate() {
+                        match &object.object_type {
+                            ObjectType::None => {
+                                d.draw_rectangle(
+                                    object.x as i32,
+                                    object.y as i32,
+                                    object.width as i32,
+                                    object.height as i32,
+                                    Color::RED,
+                                );
+                            }
+                            _ => (),
+                        };
+                    }
+                }
+                _ => (),
+            }
         }
     }
 }
