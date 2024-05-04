@@ -1,3 +1,3 @@
 #!/bin/sh
 
-apk update && apk add clang10 clang10-dev
+apk update && apk add clang clang-dev
