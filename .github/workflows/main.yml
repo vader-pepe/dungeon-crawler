@@ -30,8 +30,8 @@ jobs:
     steps:
       - name: Update system packages
         run: sudo apt-get update && sudo apt-get upgrade -y
-      - name: Install required package
-        run: sudo apt-get install xorg-dev -y
+      - name: install GLFW
+        uses: RpxdYTX/install-glfw-deps@v2
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Compile and release
