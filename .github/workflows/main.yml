@@ -12,9 +12,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target:
-          - x86_64-pc-windows-gnu
-          - x86_64-unknown-linux-gnu
+        include:
+          - target: x86_64-pc-windows-gnu
+            artifact_name: dungeon_crawler.exe
+          - target: x86_64-pc-windows-musl
+            artifact_name: dungeon_crawler
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -33,8 +35,6 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: |
-            ${{ matrix.target == 'x86_64-pc-windows-gnu' && 'target/x86_64-pc-windows-gnu/release/dungeon_crawler.exe' }}
-            ${{ matrix.target == 'x86_64-unknown-linux-gnu' && 'target/x86_64-unknown-linux-gnu/release/dungeon_crawler' }}
+          file: target/release/${{ matrix.artifact_name }}
           asset_name: dungeon_crawler
           tag: ${{ github.ref }}
