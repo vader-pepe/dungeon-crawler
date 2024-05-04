@@ -22,15 +22,7 @@ jobs:
         uses: rust-build/rust-build.action@v1.4.5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if [ "${{ matrix.target }}" = "x86_64-pc-windows-gnu" ]; then
-            PRE_BUILD="win_pre_build.sh"
-          elif [ "${{ matrix.target }}" = "x86_64-unknown-linux-musl" ]; then
-            PRE_BUILD="linux_pre_build.sh"
-          else
-            echo "Unsupported target"
-            exit 1
-          fi
-          
-          echo "Running pre-build script: $PRE_BUILD"
-          ./$PRE_BUILD
+        with:
+          RUSTTARGET: ${{ matrix.target }}
+          EXTRA_FILES: "README.md LICENSE"
+          PRE_BUILD: ${{ matrix.target }}.sh
