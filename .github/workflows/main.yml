@@ -25,8 +25,6 @@ jobs:
           toolchain: stable
           target: ${{ matrix.target }}
           override: true
-      - name: Build raylib
-        run: raylib.sh
       - name: Build
         uses: actions-rs/cargo@v1
         with:
