@@ -14,7 +14,7 @@ jobs:
       matrix:
         target:
           - x86_64-pc-windows-gnu
-          - x86_64-unknown-linux-musl
+          - x86_64-unknown-linux-gnu
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -29,3 +29,12 @@ jobs:
           use-cross: true
           command: build
           args: --target ${{ matrix.target }} --release
+      - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: |
+            ${{ matrix.target == 'x86_64-pc-windows-gnu' && 'target/x86_64-pc-windows-gnu/release/dungeon_crawler.exe' }}
+            ${{ matrix.target == 'x86_64-unknown-linux-gnu' && 'target/x86_64-unknown-linux-gnu/release/dungeon_crawler' }}
+        asset_name: dungeon_crawler
+        tag: ${{ github.ref }}
