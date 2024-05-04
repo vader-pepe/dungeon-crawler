@@ -16,8 +16,8 @@ jobs:
     steps:
       - run: sudo apt-get update -y
       - run: sudo apt-get upgrade -y
-      - run: sudo apt-get install xorg -y
-      - run: sudo apt-get install clang -y
+      - run: sudo apt-get install xorg-dev -y
+      - run: sudo apt-get install libclang-dev -y
       - uses: actions/checkout@master
       - name: Compile and release
         uses: rust-build/rust-build.action@v1.4.5
