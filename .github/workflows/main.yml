@@ -29,10 +29,9 @@ jobs:
           - x86_64-pc-windows-gnu
           - x86_64-unknown-linux-musl
     steps:
-      - name: install GLFW
-        uses: RpxdYTX/install-glfw-deps@v2
       - name: Checkout code
         uses: actions/checkout@v2
+        run: apt-get install xorg-dev -y
       - name: Compile and release
         uses: rust-build/rust-build.action@v1.4.5
         env:
