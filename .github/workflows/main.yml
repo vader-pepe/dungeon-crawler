@@ -6,21 +6,8 @@ on:
       - main
 
 jobs:
-  setup-clang:
-    name: Set up Clang
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Install Clang
-        uses: egor-tensin/setup-clang@v1
-        with:
-          version: latest
-          platform: x64
-
   release:
     name: Release ${{ matrix.target }}
-    needs: setup-clang
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -28,8 +15,10 @@ jobs:
         target:
           - x86_64-pc-windows-gnu
           - x86_64-unknown-linux-musl
+        os:
+          - windows
+          - linux
     steps:
-      - run: sudo apt-get install xorg-dev -y
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Compile and release
@@ -39,3 +28,4 @@ jobs:
         with:
           RUSTTARGET: ${{ matrix.target }}
           EXTRA_FILES: "README.md LICENSE"
+          PRE_BUILD: ${{ matrix.os == 'linux' && './linux_pre_build.sh' || './windows_pre_build.sh' }}
