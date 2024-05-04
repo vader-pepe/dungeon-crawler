@@ -15,7 +15,7 @@ jobs:
         include:
           - target: x86_64-pc-windows-gnu
             artifact_name: dungeon_crawler.exe
-          - target: x86_64-pc-windows-musl
+          - target: x86_64-unknown-linux-musl
             artifact_name: dungeon_crawler
     steps:
       - name: Checkout code
