@@ -1,3 +1,3 @@
 #!/bin/sh
 
-apk update && apk add xorg-server-dev libxrandr-dev libxinerama-dev
+apk update && apk add libx11-dev
