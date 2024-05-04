@@ -30,11 +30,11 @@ jobs:
           command: build
           args: --target ${{ matrix.target }} --release
       - name: Upload binaries to release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: |
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: |
             ${{ matrix.target == 'x86_64-pc-windows-gnu' && 'target/x86_64-pc-windows-gnu/release/dungeon_crawler.exe' }}
             ${{ matrix.target == 'x86_64-unknown-linux-gnu' && 'target/x86_64-unknown-linux-gnu/release/dungeon_crawler' }}
-        asset_name: dungeon_crawler
-        tag: ${{ github.ref }}
+          asset_name: dungeon_crawler
+          tag: ${{ github.ref }}
