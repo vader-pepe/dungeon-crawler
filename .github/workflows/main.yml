@@ -18,11 +18,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Compile and release
-        uses: rust-build/rust-build.action@v1.4.5
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions-rs/toolchain@v1
+      - name: Build
+        uses: actions-rs/cargo@v1
         with:
-          RUSTTARGET: ${{ matrix.target }}
-          EXTRA_FILES: "README.md LICENSE"
-          PRE_BUILD: ${{ matrix.target }}.sh
+          use-cross: true
+          command: build
+          args: --target ${{ matrix.target }} --release
