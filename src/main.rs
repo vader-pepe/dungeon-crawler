@@ -231,12 +231,12 @@ fn main() {
             );
         }
 
-        d.draw_triangle(
-            Vector2 { x: 0.0, y: 0.0 },
-            Vector2 { x: 10.0, y: 10.0 },
-            Vector2 { x: 0.0, y: 0.0 },
-            Color::TAN,
-        );
+        // d.draw_triangle(
+        //     Vector2 { x: 16.0, y: 16.0 },
+        //     Vector2 { x: 16.0, y: 32.0 },
+        //     Vector2 { x: 32.0, y: 32.0 },
+        //     Color::RED,
+        // );
     }
 }
 
