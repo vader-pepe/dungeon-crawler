@@ -15,7 +15,7 @@ jobs:
         include:
           - target: x86_64-pc-windows-gnu
             artifact_name: dungeon_crawler.exe
-          - target: x86_64-unknown-linux-musl
+          - target: x86_64-unknown-linux-gnu
             artifact_name: dungeon_crawler
     steps:
       - name: Checkout code
@@ -35,6 +35,6 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: target/release/${{ matrix.artifact_name }}
+          file: ./target/release/${{ matrix.artifact_name }}
           asset_name: dungeon_crawler
           tag: ${{ github.ref }}
