@@ -15,9 +15,6 @@ jobs:
         target:
           - x86_64-pc-windows-gnu
           - x86_64-unknown-linux-musl
-        os:
-          - windows
-          - linux
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -28,4 +25,4 @@ jobs:
         with:
           RUSTTARGET: ${{ matrix.target }}
           EXTRA_FILES: "README.md LICENSE"
-          PRE_BUILD: ${{ matrix.os == 'linux' && './linux_pre_build.sh' || './windows_pre_build.sh' }}
+          PRE_BUILD: ${{ matrix.target == 'x86_64-pc-windows-gnu' && './linux_pre_build.sh' || './windows_pre_build.sh' }}
