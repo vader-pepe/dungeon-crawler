@@ -36,5 +36,6 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
-          asset_name: dungeon_crawler
+          asset_name: ${{ matrix.artifact_name }}
           tag: ${{ github.ref }}
+          overwrite: true
