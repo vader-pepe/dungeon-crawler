@@ -25,7 +25,9 @@ jobs:
         with:
           RUSTTARGET: ${{ matrix.target }}
           EXTRA_FILES: "README.md LICENSE"
-          if: ${{ matrix.target == 'x86_64-pc-windows-gnu'}}
-          PRE_BUILD: "win_pre_build.sh"
-          if: ${{ matrix.target == 'x86_64-unknown-linux-musl'}}
-          PRE_BUILD: "linux_pre_build.sh"
+          PRE_BUILD: >
+            ${{ if matrix.target == 'x86_64-pc-windows-gnu' }} 
+              win_pre_build.sh
+            ${{ else if matrix.target == 'x86_64-unknown-linux-musl' }}
+              linux_pre_build.sh
+            ${{ endif }}
