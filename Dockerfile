@@ -9,8 +9,8 @@ ARG CROSS_DEB_ARCH
 RUN /install_deb.sh $CROSS_DEB_ARCH libgstreamer1.0-dev \
   libgstreamer-plugins-base1.0-dev \
   libssl-dev \
-  libclang-10-dev \
-  clang-10 \
+  libclang-11-dev \
+  clang-11 \
   xorg-dev
 
 # Update any environment variables required with `ENV`.
