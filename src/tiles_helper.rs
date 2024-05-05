@@ -46,14 +46,9 @@ pub fn breakdown_tiles(data: &Vec<TileSet>) -> Vec<Rectangle> {
     tiles_arr
 }
 
-pub fn format_pathname(path: &str) -> String {
-    if let Some(first_slash_idx) = path.find('/') {
-        if let Some(second_slash_idx) = path[first_slash_idx + 1..].find('/') {
-            let start_index = first_slash_idx + second_slash_idx + 1;
-            let result = &path[start_index..].to_string();
-            let formatted = format!("./src{result}");
-            return formatted;
-        }
-    }
-    String::new()
+pub fn pathname_format_for_maps(path: &str) -> String {
+    let target = "../";
+    let replacement = "./src/assets/";
+
+    path.replace(target, replacement)
 }

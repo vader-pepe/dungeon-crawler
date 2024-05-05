@@ -1,5 +1,5 @@
 mod tiles_helper;
-use tiles_helper::{breakdown_tiles, format_pathname};
+use tiles_helper::{breakdown_tiles, pathname_format_for_maps};
 
 use raylib::{
     color::Color,
@@ -31,13 +31,15 @@ fn main() {
         .title("Dungeon Crawler")
         .build();
 
-    let map_1 = tiled_json_rs::Map::load_from_file(&PathBuf::from("./maps/map_1.json").as_path())
-        .expect("Failed to load map");
+    let map_1 = tiled_json_rs::Map::load_from_file(
+        &PathBuf::from("./src/assets/maps/map_1.json").as_path(),
+    )
+    .expect("Failed to load map");
 
     let mut tiles_textures: Vec<Texture2D> = vec![];
     for tileset in &map_1.tile_sets {
         let rl = &mut rl;
-        let json_path = format_pathname(
+        let json_path = pathname_format_for_maps(
             tileset
                 .image
                 .clone()

@@ -176,7 +176,7 @@
         {
          "columns":25,
          "firstgid":1,
-         "image":"..\/src\/assets\/img\/Environment\/Dungeon Prison\/Assets\/Tiles.png",
+         "image":"..\/img\/Environment\/Dungeon Prison\/Assets\/Tiles.png",
          "imageheight":400,
          "imagewidth":400,
          "margin":0,
@@ -189,7 +189,7 @@
         {
          "columns":25,
          "firstgid":626,
-         "image":"..\/src\/assets\/img\/Environment\/Dungeon Prison\/Assets\/Props.png",
+         "image":"..\/img\/Environment\/Dungeon Prison\/Assets\/Props.png",
          "imageheight":400,
          "imagewidth":400,
          "margin":0,
@@ -202,7 +202,7 @@
         {
          "columns":25,
          "firstgid":1251,
-         "image":"..\/src\/assets\/img\/Environment\/Green Woods\/Assets\/Tiles.png",
+         "image":"..\/img\/Environment\/Green Woods\/Assets\/Tiles.png",
          "imageheight":400,
          "imagewidth":400,
          "margin":0,
@@ -215,7 +215,7 @@
         {
          "columns":25,
          "firstgid":1876,
-         "image":"..\/src\/assets\/img\/Environment\/Green Woods\/Assets\/Props.png",
+         "image":"..\/img\/Environment\/Green Woods\/Assets\/Props.png",
          "imageheight":400,
          "imagewidth":400,
          "margin":0,
@@ -228,7 +228,7 @@
         {
          "columns":15,
          "firstgid":2501,
-         "image":"..\/src\/assets\/img\/Environment\/Green Woods\/Assets\/Trees.png",
+         "image":"..\/img\/Environment\/Green Woods\/Assets\/Trees.png",
          "imageheight":352,
          "imagewidth":240,
          "margin":0,
@@ -241,7 +241,7 @@
         {
          "columns":14,
          "firstgid":2831,
-         "image":"..\/src\/assets\/img\/Weapons\/Bone\/Bone.png",
+         "image":"..\/img\/Weapons\/Bone\/Bone.png",
          "imageheight":144,
          "imagewidth":224,
          "margin":0,
@@ -254,7 +254,7 @@
         {
          "columns":2,
          "firstgid":2957,
-         "image":"..\/src\/assets\/img\/Weapons\/Hands\/Hands.png",
+         "image":"..\/img\/Weapons\/Hands\/Hands.png",
          "imageheight":64,
          "imagewidth":32,
          "margin":0,
@@ -267,7 +267,7 @@
         {
          "columns":12,
          "firstgid":2965,
-         "image":"..\/src\/assets\/img\/Weapons\/Wood\/Wood.png",
+         "image":"..\/img\/Weapons\/Wood\/Wood.png",
          "imageheight":112,
          "imagewidth":192,
          "margin":0,
@@ -280,7 +280,7 @@
         {
          "columns":8,
          "firstgid":3049,
-         "image":"..\/src\/assets\/img\/Heroes\/Knight\/Idle\/Idle-Sheet.png",
+         "image":"..\/img\/Heroes\/Knight\/Idle\/Idle-Sheet.png",
          "imageheight":32,
          "imagewidth":128,
          "margin":0,
@@ -293,7 +293,7 @@
         {
          "columns":30,
          "firstgid":3065,
-         "image":"..\/src\/assets\/img\/Anim\/_Attack.png",
+         "image":"..\/img\/Anim\/_Attack.png",
          "imageheight":80,
          "imagewidth":480,
          "margin":0,
