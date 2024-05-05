@@ -20,6 +20,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: Build Image
+        runs:
+          using: 'docker'
+          image: 'Dockerfile'
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
