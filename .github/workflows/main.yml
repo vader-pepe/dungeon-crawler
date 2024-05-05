@@ -38,6 +38,6 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: dungeon_crawler.zip
+          file: ${{ matrix.target }}_dungeon_crawler.zip
           tag: ${{ github.ref }}
           overwrite: true
