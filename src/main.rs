@@ -1,5 +1,5 @@
 mod tiles_helper;
-use tiles_helper::{breakdown_tiles, pathname_format_for_maps};
+use tiles_helper::{breakdown_tiles, path_utils, pathname_format_for_maps};
 
 use raylib::{
     color::Color,
@@ -31,10 +31,10 @@ fn main() {
         .title("Dungeon Crawler")
         .build();
 
-    let map_1 = tiled_json_rs::Map::load_from_file(
-        &PathBuf::from("./src/assets/maps/map_1.json").as_path(),
-    )
-    .expect("Failed to load map");
+    let map = path_utils(tiles_helper::Path::Map);
+    let map_1 =
+        tiled_json_rs::Map::load_from_file(&PathBuf::from(format!("{map}/map_1.json")).as_path())
+            .expect("Failed to load map");
 
     let mut tiles_textures: Vec<Texture2D> = vec![];
     for tileset in &map_1.tile_sets {
@@ -59,19 +59,19 @@ fn main() {
     // TODO: handle texture better
     // tips: create prefabs(game object?) like unity
     let hero_texture = &rl
-        .load_texture(&thread, "./src/assets/img/Heroes/Rogue/Idle/Idle-Sheet.png")
+        .load_texture(&thread, "./assets/img/Heroes/Rogue/Idle/Idle-Sheet.png")
         .expect("unable to load texture!");
 
     let hands_texture = &rl
-        .load_texture(&thread, "./src/assets/img/Weapons/Hands/Hands.png")
+        .load_texture(&thread, "./assets/img/Weapons/Hands/Hands.png")
         .expect("unable to load texture!");
 
     let weapon_texture = &rl
-        .load_texture(&thread, "./src/assets/img/Weapons/Wood/Wood.png")
+        .load_texture(&thread, "./assets/img/Weapons/Wood/Wood.png")
         .expect("unable to load texture!");
 
     let slash_texture = &rl
-        .load_texture(&thread, "./src/assets/img/Anim/_Attack.png")
+        .load_texture(&thread, "./assets/img/Anim/_Attack.png")
         .expect("unable to load texture!");
 
     let mut player_position = Vector2 {

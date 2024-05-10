@@ -20,6 +20,8 @@ pub fn breakdown_tiles(data: &Vec<TileSet>) -> Vec<Rectangle> {
             x = 0;
             y = 0;
         }
+        // if tiles first_gid is 1, not 0
+        // thanks to Tiled, first tile is always empty
         if tiles.first_gid == 1 {
             tiles_arr.push(Rectangle {
                 x: -TILES_WIDTH as f32,
@@ -48,7 +50,28 @@ pub fn breakdown_tiles(data: &Vec<TileSet>) -> Vec<Rectangle> {
 
 pub fn pathname_format_for_maps(path: &str) -> String {
     let target = "../";
-    let replacement = "./src/assets/";
 
-    path.replace(target, replacement)
+    let replaced = path.replace(target, "");
+
+    let assets = path_utils(Path::Assets);
+    format!("{assets}/{replaced}")
+}
+
+#[derive(Debug)]
+pub enum Path {
+    Root,
+    Assets,
+    Map,
+    Img,
+}
+
+pub fn path_utils(path: Path) -> String {
+    let res = match path {
+        Path::Root => String::from("./src"),
+        Path::Assets => String::from("./assets"),
+        Path::Map => String::from("./assets/maps"),
+        Path::Img => String::from("./assets/img"),
+    };
+
+    res
 }
