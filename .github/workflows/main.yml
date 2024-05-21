@@ -33,7 +33,8 @@ jobs:
           args: --target ${{ matrix.target }} --release
       - name: Make Archive
         run: |
-          zip -r ${{ matrix.target }}_dungeon_crawler.zip target/${{ matrix.target }}/release/${{ matrix.artifact_name }} assets
+          mv target/${{ matrix.target }}/release/${{ matrix.artifact_name }} .
+          zip -r ${{ matrix.target }}_dungeon_crawler.zip ${{ matrix.artifact_name }} assets
       - name: Release binary
         uses: svenstaro/upload-release-action@v2
         with:

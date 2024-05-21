@@ -6,20 +6,10 @@ use crate::{TILES_HEIGHT, TILES_WIDTH};
 pub fn breakdown_tiles(data: &Vec<TileSet>) -> Vec<Rectangle> {
     let mut tiles_arr: Vec<Rectangle> = vec![];
 
-    for (index, tiles) in data.iter().enumerate() {
+    for (_, tiles) in data.iter().enumerate() {
         let mut x = 0;
         let mut y = 0;
 
-        let current_pointer = index;
-        let previous_pointer = if index > 0 {
-            current_pointer - 1
-        } else {
-            current_pointer
-        };
-        if current_pointer != previous_pointer + 1 {
-            x = 0;
-            y = 0;
-        }
         // if tiles first_gid is 1, not 0
         // thanks to Tiled, first tile is always empty
         if tiles.first_gid == 1 {

@@ -1,0 +1,3 @@
+[submodule "wave-func-collapse-htmx"]
+	path = wave-func-collapse-htmx
+	url = git@github.com:vader-pepe/wave-func-collapse-htmx.git
