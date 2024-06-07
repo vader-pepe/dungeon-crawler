@@ -1,3 +1,4 @@
+mod state;
 mod tiles_helper;
 use tiles_helper::{breakdown_tiles, path_utils, pathname_format_for_maps};
 
@@ -177,7 +178,6 @@ fn main() {
         if hero_idle_frame >= 4.0 {
             hero_idle_frame = 0.0;
         }
-        println!("frame: {}", hero_idle_frame.floor());
         d.draw_texture_rec(
             hands_texture,
             Rectangle {
