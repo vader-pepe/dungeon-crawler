@@ -6,7 +6,7 @@ use raylib::{
     drawing::{RaylibDraw, RaylibDrawHandle},
     ffi::KeyboardKey,
     math::{Rectangle, Vector2},
-    texture::Texture2D,
+    texture::{RaylibTexture2D, Texture2D},
 };
 use std::path::PathBuf;
 use tiled_json_rs::{Map, ObjectType};
@@ -26,6 +26,9 @@ const TILE_HEIGHT_COUNT: i32 = SCREEN_HEIGHT / TILES_HEIGHT;
 // TODO: setup CICD, cross compile, wasm
 fn main() {
     let mut next_fire = 0.0;
+    let mut frames_counter = 0;
+    let mut current_frame = 0;
+    let frames_speed = 12;
     let (mut rl, thread) = raylib::init()
         .size(SCREEN_WIDTH, SCREEN_HEIGHT)
         .title("Dungeon Crawler")
@@ -79,14 +82,7 @@ fn main() {
         y: (30 * TILES_HEIGHT) as f32,
     };
 
-    let door_rec = Rectangle {
-        x: (19 * TILES_WIDTH) as f32,
-        y: (22 * TILES_HEIGHT) as f32,
-        width: (2 * TILES_WIDTH) as f32,
-        height: (1 * TILES_HEIGHT) as f32,
-    };
-
-    let mut _player_hitbox = Rectangle {
+    let mut player_rect = Rectangle {
         x: player_position.x,
         y: player_position.y,
         width: (hero_texture.width / 4) as f32,
@@ -98,12 +94,25 @@ fn main() {
 
     rl.set_target_fps(60);
 
+    let mut hero_idle_frame: f32 = 0.0;
     while !&rl.window_should_close() {
         let frame_time = &rl.get_frame_time();
         let time_since_beginning = &rl.get_time();
         timer_current += frame_time;
         if timer_current >= timer_total {
             timer_current -= timer_total;
+        }
+
+        frames_counter += 1;
+        if frames_counter >= (60 / frames_speed) {
+            frames_counter = 0;
+            current_frame += 1;
+
+            if current_frame > 4 {
+                current_frame = 0;
+            }
+
+            player_rect.x = current_frame as f32 * (hero_texture.width() / 4) as f32;
         }
 
         let is_attacking = &rl.is_key_down(KeyboardKey::KEY_Z);
@@ -130,26 +139,6 @@ fn main() {
                 y: player_position.y + (normalized_movement.y * movement_speed * frame_time),
             };
 
-            _player_hitbox = Rectangle {
-                x: player_position.x,
-                y: player_position.y,
-                width: (hero_texture.width / 4) as f32,
-                height: (hero_texture.height / 2) as f32,
-            };
-
-            // these 2 are basically the same
-            let check_collision = _player_hitbox.check_collision_recs(&door_rec); // returning
-                                                                                  // boolean
-            let get_collision = _player_hitbox.get_collision_rec(&door_rec); // returnin Rectangle
-            match get_collision {
-                None => (),
-                Some(_rect) => { /* TODO: handle collision,*/ }
-            };
-
-            if check_collision {
-                // TODO: handle collision
-            }
-
             // Check player position to avoid moving outside tilemap limits
             if player_position.x < 0.0 {
                 player_position.x = 0.0;
@@ -175,7 +164,7 @@ fn main() {
         d.draw_texture_rec(
             hero_texture,
             Rectangle {
-                x: 0.0,
+                x: (hero_idle_frame.floor() * 32.0),
                 y: 0.0,
                 width: (hero_texture.width / 4) as f32,
                 height: (hero_texture.height) as f32,
@@ -183,6 +172,12 @@ fn main() {
             player_position,
             Color::WHITE,
         );
+        // PERFECT FRAME CHANGE FORMULA
+        hero_idle_frame += 1.0 * frame_time * 2.0;
+        if hero_idle_frame >= 4.0 {
+            hero_idle_frame = 0.0;
+        }
+        println!("frame: {}", hero_idle_frame.floor());
         d.draw_texture_rec(
             hands_texture,
             Rectangle {
@@ -232,13 +227,6 @@ fn main() {
                 Color::WHITE,
             );
         }
-
-        // d.draw_triangle(
-        //     Vector2 { x: 16.0, y: 16.0 },
-        //     Vector2 { x: 16.0, y: 32.0 },
-        //     Vector2 { x: 32.0, y: 32.0 },
-        //     Color::RED,
-        // );
     }
 }
 
@@ -300,22 +288,23 @@ fn draw_scene(
                 tiled_json_rs::LayerType::ObjectGroup(obj_group) => {
                     // TODO: map collision starts here.
                     // pain.
-                    for (obj_index, object) in obj_group.objects.iter().enumerate() {
+                    for (_obj_index, object) in obj_group.objects.iter().enumerate() {
                         match &object.object_type {
                             ObjectType::None => {
-                                d.draw_rectangle(
-                                    object.x as i32,
-                                    object.y as i32,
-                                    object.width as i32,
-                                    object.height as i32,
-                                    Color::RED,
-                                );
+                                // TODO: fix this
+                                //
+                                // d.draw_rectangle(
+                                //     object.x as i32,
+                                //     object.y as i32,
+                                //     object.width as i32,
+                                //     object.height as i32,
+                                //     Color::RED,
+                                // );
                             }
                             _ => (),
                         };
                     }
                 }
-                _ => (),
             }
         }
     }
