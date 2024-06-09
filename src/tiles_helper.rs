@@ -1,3 +1,5 @@
+use std::{env::current_dir, path::PathBuf};
+
 use raylib::math::Rectangle;
 use tiled_json_rs::TileSet;
 
@@ -43,25 +45,16 @@ pub fn pathname_format_for_maps(path: &str) -> String {
 
     let replaced = path.replace(target, "");
 
-    let assets = path_utils(Path::Assets);
+    let assets = path_utils("/assets")
+        .into_os_string()
+        .into_string()
+        .unwrap();
     format!("{assets}/{replaced}")
 }
 
-#[derive(Debug)]
-pub enum Path {
-    Root,
-    Assets,
-    Map,
-    Img,
-}
-
-pub fn path_utils(path: Path) -> String {
-    let res = match path {
-        Path::Root => String::from("./src"),
-        Path::Assets => String::from("./assets"),
-        Path::Map => String::from("./assets/maps"),
-        Path::Img => String::from("./assets/img"),
-    };
-
-    res
+pub fn path_utils(s: &str) -> PathBuf {
+    let root = current_dir().unwrap();
+    let mut p = root.into_os_string();
+    p.push(s);
+    p.into()
 }

@@ -1,5 +1,6 @@
-mod state;
+mod player;
 mod tiles_helper;
+use player::{render_player, Player};
 use tiles_helper::{breakdown_tiles, path_utils, pathname_format_for_maps};
 
 use raylib::{
@@ -7,9 +8,8 @@ use raylib::{
     drawing::{RaylibDraw, RaylibDrawHandle},
     ffi::KeyboardKey,
     math::{Rectangle, Vector2},
-    texture::{RaylibTexture2D, Texture2D},
+    texture::Texture2D,
 };
-use std::path::PathBuf;
 use tiled_json_rs::{Map, ObjectType};
 
 const TILES_WIDTH: i32 = 16;
@@ -26,19 +26,13 @@ const TILE_HEIGHT_COUNT: i32 = SCREEN_HEIGHT / TILES_HEIGHT;
 
 // TODO: setup CICD, cross compile, wasm
 fn main() {
-    let mut next_fire = 0.0;
-    let mut frames_counter = 0;
-    let mut current_frame = 0;
-    let frames_speed = 12;
     let (mut rl, thread) = raylib::init()
         .size(SCREEN_WIDTH, SCREEN_HEIGHT)
         .title("Dungeon Crawler")
         .build();
 
-    let map = path_utils(tiles_helper::Path::Map);
-    let map_1 =
-        tiled_json_rs::Map::load_from_file(&PathBuf::from(format!("{map}/map_1.json")).as_path())
-            .expect("Failed to load map");
+    let map = path_utils("/assets/maps/map_1.json");
+    let map_1 = tiled_json_rs::Map::load_from_file(&map.as_path()).expect("Failed to load map");
 
     let mut tiles_textures: Vec<Texture2D> = vec![];
     for tileset in &map_1.tile_sets {
@@ -62,11 +56,11 @@ fn main() {
 
     // TODO: handle texture better
     // tips: create prefabs(game object?) like unity
-    let hero_texture = &rl
+    let player_torso_texture = &rl
         .load_texture(&thread, "./assets/img/Heroes/Rogue/Idle/Idle-Sheet.png")
         .expect("unable to load texture!");
 
-    let hands_texture = &rl
+    let player_hands_texture = &rl
         .load_texture(&thread, "./assets/img/Weapons/Hands/Hands.png")
         .expect("unable to load texture!");
 
@@ -83,40 +77,27 @@ fn main() {
         y: (30 * TILES_HEIGHT) as f32,
     };
 
-    let mut player_rect = Rectangle {
-        x: player_position.x,
-        y: player_position.y,
-        width: (hero_texture.width / 4) as f32,
-        height: hero_texture.height as f32,
-    };
-
-    let mut timer_current = 0.0;
-    let timer_total = 1.0;
-
     rl.set_target_fps(60);
 
-    let mut hero_idle_frame: f32 = 0.0;
+    let mut current_player_frame: f32 = 0.0;
+    // WHEN LOOP STARTS, DEFINE ALL STATE
+    // WITH INITIAL STATE
+
+    let mut player = Player::new();
     while !&rl.window_should_close() {
         let frame_time = &rl.get_frame_time();
-        let time_since_beginning = &rl.get_time();
-        timer_current += frame_time;
-        if timer_current >= timer_total {
-            timer_current -= timer_total;
-        }
+        let frame_speed = frame_time * 2.0;
+        let player_control: Option<KeyboardKey> = match true {
+            _ if rl.is_key_down(KeyboardKey::KEY_UP) => Some(KeyboardKey::KEY_UP),
+            _ if rl.is_key_down(KeyboardKey::KEY_RIGHT) => Some(KeyboardKey::KEY_RIGHT),
+            _ if rl.is_key_down(KeyboardKey::KEY_DOWN) => Some(KeyboardKey::KEY_DOWN),
+            _ if rl.is_key_down(KeyboardKey::KEY_LEFT) => Some(KeyboardKey::KEY_LEFT),
+            _ if rl.is_key_down(KeyboardKey::KEY_Z) => Some(KeyboardKey::KEY_Z),
+            _ => None,
+        };
 
-        frames_counter += 1;
-        if frames_counter >= (60 / frames_speed) {
-            frames_counter = 0;
-            current_frame += 1;
+        player.process(player_control);
 
-            if current_frame > 4 {
-                current_frame = 0;
-            }
-
-            player_rect.x = current_frame as f32 * (hero_texture.width() / 4) as f32;
-        }
-
-        let is_attacking = &rl.is_key_down(KeyboardKey::KEY_Z);
         // player movement
         {
             let mut player_movement = Vector2 { x: 0.0, y: 0.0 };
@@ -149,82 +130,30 @@ fn main() {
                 player_position.y = 0.0;
             }
 
-            if player_position.x >= (SCREEN_WIDTH as f32) - (hero_texture.width / 4) as f32 {
-                player_position.x = (SCREEN_WIDTH as f32) - (hero_texture.width / 4) as f32;
+            if player_position.x >= (SCREEN_WIDTH as f32) - (player_torso_texture.width / 4) as f32
+            {
+                player_position.x = (SCREEN_WIDTH as f32) - (player_torso_texture.width / 4) as f32;
             }
 
-            if player_position.y >= (SCREEN_HEIGHT as f32) - (hero_texture.height) as f32 {
-                player_position.y = (SCREEN_HEIGHT as f32) - (hero_texture.height) as f32;
+            if player_position.y >= (SCREEN_HEIGHT as f32) - (player_torso_texture.height) as f32 {
+                player_position.y = (SCREEN_HEIGHT as f32) - (player_torso_texture.height) as f32;
             }
         }
 
-        let d = &mut rl.begin_drawing(&thread);
+        {
+            let mut d = rl.begin_drawing(&thread);
+            draw_scene(&mut d, &map_1, &tiles_textures, &tile_arr);
 
-        draw_scene(d, &map_1, &tiles_textures, &tile_arr);
-
-        d.draw_texture_rec(
-            hero_texture,
-            Rectangle {
-                x: (hero_idle_frame.floor() * 32.0),
-                y: 0.0,
-                width: (hero_texture.width / 4) as f32,
-                height: (hero_texture.height) as f32,
-            },
-            player_position,
-            Color::WHITE,
-        );
-        // PERFECT FRAME CHANGE FORMULA
-        hero_idle_frame += 1.0 * frame_time * 2.0;
-        if hero_idle_frame >= 4.0 {
-            hero_idle_frame = 0.0;
-        }
-        d.draw_texture_rec(
-            hands_texture,
-            Rectangle {
-                x: 0.0,
-                y: 16.0,
-                width: 32.0,
-                height: 16.0,
-            },
-            Vector2 {
-                x: player_position.x,
-                y: player_position.y + 16.0,
-            },
-            Color::WHITE,
-        );
-
-        // simple attack anim
-        let fire_rate = 0.5;
-        if *is_attacking && time_since_beginning > &next_fire {
-            next_fire = time_since_beginning + fire_rate;
-            d.draw_texture_rec(
+            render_player(
+                &mut d,
+                player_torso_texture,
+                player_hands_texture,
                 slash_texture,
-                Rectangle {
-                    x: 336.0,
-                    y: 32.0,
-                    height: (3 * 16) as f32,
-                    width: (2 * 16) as f32,
-                },
-                Vector2 {
-                    x: (player_position.x + 16.0),
-                    y: (player_position.y - 16.0),
-                },
-                Color::WHITE,
-            );
-        } else {
-            d.draw_texture_rec(
                 weapon_texture,
-                Rectangle {
-                    x: 32.0,
-                    y: 16.0,
-                    height: 32.0,
-                    width: 16.0,
-                },
-                Vector2 {
-                    x: player_position.x + 16.0,
-                    y: player_position.y,
-                },
-                Color::WHITE,
+                player_position,
+                &player.state,
+                &mut current_player_frame,
+                &frame_speed,
             );
         }
     }
