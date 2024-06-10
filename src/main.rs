@@ -1,12 +1,11 @@
 mod player;
 mod tiles_helper;
-use player::{render_player, Player};
+use player::{render_player, Frames, Player, PlayerTextures};
 use tiles_helper::{breakdown_tiles, path_utils, pathname_format_for_maps};
 
 use raylib::{
     color::Color,
     drawing::{RaylibDraw, RaylibDrawHandle},
-    ffi::KeyboardKey,
     math::{Rectangle, Vector2},
     texture::Texture2D,
 };
@@ -56,8 +55,12 @@ fn main() {
 
     // TODO: handle texture better
     // tips: create prefabs(game object?) like unity
-    let player_torso_texture = &rl
+    let player_torso_idle_texture = &rl
         .load_texture(&thread, "./assets/img/Heroes/Rogue/Idle/Idle-Sheet.png")
+        .expect("unable to load texture!");
+
+    let player_torso_walk_texture = &rl
+        .load_texture(&thread, "./assets/img/Heroes/Rogue/Run/Run-Sheet.png")
         .expect("unable to load texture!");
 
     let player_hands_texture = &rl
@@ -73,88 +76,54 @@ fn main() {
         .expect("unable to load texture!");
 
     let mut player_position = Vector2 {
-        x: (20 * TILES_WIDTH) as f32,
-        y: (30 * TILES_HEIGHT) as f32,
+        x: (19 * TILES_WIDTH) as f32,
+        y: (27 * TILES_HEIGHT) as f32,
     };
 
     rl.set_target_fps(60);
 
-    let mut current_player_frame: f32 = 0.0;
-    // WHEN LOOP STARTS, DEFINE ALL STATE
-    // WITH INITIAL STATE
+    let mut body = PlayerTextures {
+        torso: vec![player_torso_idle_texture, player_torso_walk_texture],
+        hands: player_hands_texture,
+        slash: slash_texture,
+        weapon: weapon_texture,
+    };
 
-    let mut player = Player::new();
+    let mut frames = Frames {
+        attack_frame: &mut 0.0,
+        walk_frame: &mut 0.0,
+        idle_frame: &mut 0.0,
+    };
+
+    let mut player = Player::new(&mut body, &mut frames, &mut player_position);
     while !&rl.window_should_close() {
-        let frame_time = &rl.get_frame_time();
-        let frame_speed = frame_time * 2.0;
-        let player_control: Option<KeyboardKey> = match true {
-            _ if rl.is_key_down(KeyboardKey::KEY_UP) => Some(KeyboardKey::KEY_UP),
-            _ if rl.is_key_down(KeyboardKey::KEY_RIGHT) => Some(KeyboardKey::KEY_RIGHT),
-            _ if rl.is_key_down(KeyboardKey::KEY_DOWN) => Some(KeyboardKey::KEY_DOWN),
-            _ if rl.is_key_down(KeyboardKey::KEY_LEFT) => Some(KeyboardKey::KEY_LEFT),
-            _ if rl.is_key_down(KeyboardKey::KEY_Z) => Some(KeyboardKey::KEY_Z),
-            _ => None,
-        };
+        player.process(&rl);
 
-        player.process(player_control);
-
-        // player movement
-        {
-            let mut player_movement = Vector2 { x: 0.0, y: 0.0 };
-            if rl.is_key_down(KeyboardKey::KEY_RIGHT) {
-                player_movement.x = 1.0;
-            }
-            if rl.is_key_down(KeyboardKey::KEY_LEFT) {
-                player_movement.x = -1.0;
-            }
-            if rl.is_key_down(KeyboardKey::KEY_DOWN) {
-                player_movement.y = 1.0;
-            }
-            if rl.is_key_down(KeyboardKey::KEY_UP) {
-                player_movement.y = -1.0;
-            }
-
-            let normalized_movement = &player_movement.normalized();
-            let movement_speed = 64.0;
-            player_position = Vector2 {
-                x: player_position.x + (normalized_movement.x * movement_speed * frame_time),
-                y: player_position.y + (normalized_movement.y * movement_speed * frame_time),
-            };
-
-            // Check player position to avoid moving outside tilemap limits
-            if player_position.x < 0.0 {
-                player_position.x = 0.0;
-            }
-
-            if player_position.y < 0.0 {
-                player_position.y = 0.0;
-            }
-
-            if player_position.x >= (SCREEN_WIDTH as f32) - (player_torso_texture.width / 4) as f32
-            {
-                player_position.x = (SCREEN_WIDTH as f32) - (player_torso_texture.width / 4) as f32;
-            }
-
-            if player_position.y >= (SCREEN_HEIGHT as f32) - (player_torso_texture.height) as f32 {
-                player_position.y = (SCREEN_HEIGHT as f32) - (player_torso_texture.height) as f32;
-            }
-        }
+        //
+        //     // Check player position to avoid moving outside tilemap limits
+        //     if player_position.x < 0.0 {
+        //         player_position.x = 0.0;
+        //     }
+        //
+        //     if player_position.y < 0.0 {
+        //         player_position.y = 0.0;
+        //     }
+        //
+        //     if player_position.x >= (SCREEN_WIDTH as f32) - (player_torso_texture.width / 4) as f32
+        //     {
+        //         player_position.x = (SCREEN_WIDTH as f32) - (player_torso_texture.width / 4) as f32;
+        //     }
+        //
+        //     if player_position.y >= (SCREEN_HEIGHT as f32) - (player_torso_texture.height) as f32 {
+        //         player_position.y = (SCREEN_HEIGHT as f32) - (player_torso_texture.height) as f32;
+        //     }
+        // }
 
         {
             let mut d = rl.begin_drawing(&thread);
             draw_scene(&mut d, &map_1, &tiles_textures, &tile_arr);
 
-            render_player(
-                &mut d,
-                player_torso_texture,
-                player_hands_texture,
-                slash_texture,
-                weapon_texture,
-                player_position,
-                &player.state,
-                &mut current_player_frame,
-                &frame_speed,
-            );
+            render_player(&mut d, &mut player);
         }
     }
 }

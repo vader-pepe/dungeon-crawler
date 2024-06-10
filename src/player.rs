@@ -1,4 +1,5 @@
 use raylib::prelude::RaylibDraw;
+use raylib::RaylibHandle;
 use raylib::{
     color::Color,
     drawing::RaylibDrawHandle,
@@ -15,57 +16,133 @@ pub enum PlayerState {
 }
 
 #[derive(Debug)]
-pub struct Player {
-    pub state: PlayerState,
+enum PlayerFacing {
+    Left,
+    Right,
 }
 
-impl Player {
-    pub fn new() -> Self {
+#[derive(Debug)]
+pub struct PlayerTextures<'a> {
+    pub torso: Vec<&'a Texture2D>,
+    pub hands: &'a Texture2D,
+    pub slash: &'a Texture2D,
+    pub weapon: &'a Texture2D,
+}
+
+#[derive(Debug)]
+pub struct Frames<'a> {
+    pub idle_frame: &'a mut f32,
+    pub attack_frame: &'a mut f32,
+    pub walk_frame: &'a mut f32,
+}
+
+#[derive(Debug)]
+pub struct Player<'a> {
+    state: PlayerState,
+    position: &'a mut Vector2,
+    textures: &'a mut PlayerTextures<'a>,
+    frame_speed: f32,
+    frames: &'a mut Frames<'a>,
+    movement_speed: f32,
+    facing: PlayerFacing,
+}
+
+impl<'a> Player<'a> {
+    pub fn new(
+        textures: &'a mut PlayerTextures<'a>,
+        frames: &'a mut Frames<'a>,
+        initial_pos: &'a mut Vector2,
+    ) -> Self {
         Self {
             state: PlayerState::Idle,
+            frame_speed: 0.0,
+            position: initial_pos,
+            movement_speed: 64.0,
+            facing: PlayerFacing::Right,
+            frames,
+            textures,
         }
     }
 
-    pub fn process(&mut self, key: Option<KeyboardKey>) {
-        match key {
-            Some(KeyboardKey::KEY_Z) => {
-                self.state = PlayerState::Attack;
+    pub fn process(&mut self, rl: &RaylibHandle) {
+        let frame_time = &rl.get_frame_time();
+        let mut movement = Vector2 { x: 0.0, y: 0.0 };
+        self.frame_speed = frame_time * 3.0;
+        self.state = PlayerState::Idle;
+
+        if rl.is_key_down(KeyboardKey::KEY_UP) {
+            self.state = PlayerState::Walk;
+            movement.y -= 1.0;
+        }
+        if rl.is_key_down(KeyboardKey::KEY_RIGHT) {
+            self.state = PlayerState::Walk;
+            self.facing = PlayerFacing::Right;
+            movement.x += 1.0;
+        }
+        if rl.is_key_down(KeyboardKey::KEY_DOWN) {
+            self.state = PlayerState::Walk;
+            movement.y += 1.0;
+        }
+        if rl.is_key_down(KeyboardKey::KEY_LEFT) {
+            self.state = PlayerState::Walk;
+            self.facing = PlayerFacing::Left;
+            movement.x -= 1.0;
+        }
+
+        if rl.is_key_down(KeyboardKey::KEY_Z) {
+            self.state = PlayerState::Attack;
+        }
+
+        let normalized_movement = &movement.normalized();
+        self.position.x =
+            self.position.x + (normalized_movement.x * self.movement_speed * frame_time);
+        self.position.y =
+            self.position.y + (normalized_movement.y * self.movement_speed * frame_time);
+
+        match self.state {
+            PlayerState::Idle => {
+                *self.frames.idle_frame += 1.0 * self.frame_speed;
+                if *self.frames.idle_frame >= 4.0 {
+                    *self.frames.idle_frame = 0.0;
+                }
             }
-            Some(KeyboardKey::KEY_UP) => self.state = PlayerState::Walk,
-            Some(KeyboardKey::KEY_DOWN) => self.state = PlayerState::Walk,
-            Some(KeyboardKey::KEY_RIGHT) => self.state = PlayerState::Walk,
-            Some(KeyboardKey::KEY_LEFT) => self.state = PlayerState::Walk,
-            _ => self.state = PlayerState::Idle,
+            PlayerState::Attack => {
+                *self.frames.attack_frame += 1.0 * self.frame_speed;
+                if *self.frames.attack_frame >= 5.5 {
+                    *self.frames.attack_frame = 0.0;
+                    self.state = PlayerState::Idle;
+                }
+            }
+            PlayerState::Walk => {
+                *self.frames.walk_frame += 1.0 * self.frame_speed * 2.0;
+                if *self.frames.walk_frame >= 6.0 {
+                    *self.frames.walk_frame = 0.0;
+                }
+            }
         }
     }
 }
 
-pub fn render_player(
-    d: &mut RaylibDrawHandle,
-    player_torso_texture: &Texture2D,
-    player_hands_texture: &Texture2D,
-    slash_texture: &Texture2D,
-    weapon_texture: &Texture2D,
-    position: Vector2,
-    state: &PlayerState,
-    current_player_frame: &mut f32,
-    frame_speed: &f32,
-) {
-    match state {
+pub fn render_player(d: &mut RaylibDrawHandle, player: &mut Player) {
+    match player.state {
         PlayerState::Idle => {
+            let texture_width = match player.facing {
+                PlayerFacing::Left => -(player.textures.torso[0].width / 4),
+                PlayerFacing::Right => player.textures.torso[0].width / 4,
+            };
             d.draw_texture_rec(
-                player_torso_texture,
+                player.textures.torso[0],
                 Rectangle {
-                    x: (current_player_frame.floor() * 32.0),
+                    x: (player.frames.idle_frame.floor() * 32.0),
                     y: 0.0,
-                    width: (player_torso_texture.width / 4) as f32,
-                    height: (player_torso_texture.height) as f32,
+                    width: texture_width as f32,
+                    height: (player.textures.torso[0].height) as f32,
                 },
-                position,
+                *player.position,
                 Color::WHITE,
             );
             d.draw_texture_rec(
-                player_hands_texture,
+                player.textures.hands,
                 Rectangle {
                     x: 0.0,
                     y: 16.0,
@@ -73,13 +150,13 @@ pub fn render_player(
                     height: 16.0,
                 },
                 Vector2 {
-                    x: position.x,
-                    y: position.y + 16.0,
+                    x: player.position.x,
+                    y: player.position.y + 16.0,
                 },
                 Color::WHITE,
             );
             d.draw_texture_rec(
-                weapon_texture,
+                player.textures.weapon,
                 Rectangle {
                     x: 32.0,
                     y: 16.0,
@@ -87,26 +164,31 @@ pub fn render_player(
                     width: 16.0,
                 },
                 Vector2 {
-                    x: position.x + 16.0,
-                    y: position.y,
+                    x: player.position.x + 16.0,
+                    y: player.position.y,
                 },
                 Color::WHITE,
             );
         }
         PlayerState::Walk => {
+            let texture_width = match player.facing {
+                PlayerFacing::Left => -(player.textures.torso[1].width / 6),
+                PlayerFacing::Right => player.textures.torso[1].width / 6,
+            };
+
             d.draw_texture_rec(
-                player_torso_texture,
+                player.textures.torso[1],
                 Rectangle {
-                    x: 0.0,
+                    x: (player.frames.walk_frame.floor() * 32.0),
                     y: 0.0,
-                    width: (player_torso_texture.width / 4) as f32,
-                    height: (player_torso_texture.height) as f32,
+                    width: texture_width as f32,
+                    height: (player.textures.torso[1].height) as f32,
                 },
-                position,
+                *player.position,
                 Color::WHITE,
             );
             d.draw_texture_rec(
-                player_hands_texture,
+                player.textures.hands,
                 Rectangle {
                     x: 0.0,
                     y: 16.0,
@@ -114,13 +196,13 @@ pub fn render_player(
                     height: 16.0,
                 },
                 Vector2 {
-                    x: position.x,
-                    y: position.y + 16.0,
+                    x: player.position.x,
+                    y: player.position.y + 16.0,
                 },
                 Color::WHITE,
             );
             d.draw_texture_rec(
-                weapon_texture,
+                player.textures.weapon,
                 Rectangle {
                     x: 32.0,
                     y: 16.0,
@@ -128,26 +210,30 @@ pub fn render_player(
                     width: 16.0,
                 },
                 Vector2 {
-                    x: position.x + 16.0,
-                    y: position.y,
+                    x: player.position.x + 16.0,
+                    y: player.position.y,
                 },
                 Color::WHITE,
             );
         }
         PlayerState::Attack => {
+            let texture_width = match player.facing {
+                PlayerFacing::Left => -(player.textures.torso[0].width / 4),
+                PlayerFacing::Right => player.textures.torso[0].width / 4,
+            };
             d.draw_texture_rec(
-                player_torso_texture,
+                player.textures.torso[0],
                 Rectangle {
                     x: 0.0,
                     y: 0.0,
-                    width: (player_torso_texture.width / 4) as f32,
-                    height: (player_torso_texture.height) as f32,
+                    width: texture_width as f32,
+                    height: (player.textures.torso[0].height) as f32,
                 },
-                position,
+                *player.position,
                 Color::WHITE,
             );
             d.draw_texture_rec(
-                player_hands_texture,
+                player.textures.hands,
                 Rectangle {
                     x: 0.0,
                     y: 16.0,
@@ -155,13 +241,13 @@ pub fn render_player(
                     height: 16.0,
                 },
                 Vector2 {
-                    x: position.x,
-                    y: position.y + 16.0,
+                    x: player.position.x,
+                    y: player.position.y + 16.0,
                 },
                 Color::WHITE,
             );
             d.draw_texture_rec(
-                slash_texture,
+                player.textures.slash,
                 Rectangle {
                     x: 336.0,
                     y: 32.0,
@@ -169,16 +255,11 @@ pub fn render_player(
                     width: (2 * 16) as f32,
                 },
                 Vector2 {
-                    x: (position.x + 16.0),
-                    y: (position.y - 16.0),
+                    x: (player.position.x + 16.0),
+                    y: (player.position.y - 16.0),
                 },
                 Color::WHITE,
             );
         }
-    }
-
-    *current_player_frame += 1.0 * frame_speed;
-    if *current_player_frame >= 4.0 {
-        *current_player_frame = 0.0;
     }
 }
