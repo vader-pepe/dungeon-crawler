@@ -8,6 +8,8 @@ use raylib::{
     texture::Texture2D,
 };
 
+use crate::{Dimension, SCREEN_HEIGHT, SCREEN_WIDTH};
+
 #[derive(Debug)]
 pub enum PlayerState {
     Idle,
@@ -91,6 +93,24 @@ impl<'a> Player<'a> {
 
         if rl.is_key_down(KeyboardKey::KEY_Z) {
             self.state = PlayerState::Attack;
+        }
+
+        if self.position.x < 0.0 {
+            self.position.x = 0.0;
+        }
+
+        if self.position.y < 0.0 {
+            self.position.y = 0.0;
+        }
+
+        for (_, value) in self.textures.torso.iter().enumerate() {
+            if self.position.x >= (SCREEN_WIDTH as f32) - (value.width / 4) as f32 {
+                self.position.x = (SCREEN_WIDTH as f32) - (value.width / 4) as f32;
+            }
+
+            if self.position.y >= (SCREEN_HEIGHT as f32) - (value.height) as f32 {
+                self.position.y = (SCREEN_HEIGHT as f32) - (value.height) as f32;
+            }
         }
 
         let normalized_movement = &movement.normalized();

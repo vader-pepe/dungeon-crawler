@@ -11,6 +11,12 @@ use raylib::{
 };
 use tiled_json_rs::{Map, ObjectType};
 
+#[derive(Debug)]
+pub struct Dimension {
+    SCREEN_WIDTH: i32,
+    SCREEN_HEIGHT: i32,
+}
+
 const TILES_WIDTH: i32 = 16;
 const TILES_HEIGHT: i32 = 16;
 const SCREEN_WIDTH: i32 = 40 * TILES_WIDTH;
